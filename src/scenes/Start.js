@@ -27,7 +27,7 @@ export class Start extends Phaser.Scene {
     create() {
         const sceneRef = this;
         /**@type {Number[]} */
-        this.debugArray = [];
+        //this.debugArray = [];
         let debugString = "debug";
         this.debugText = this.add.text(5000, 0, debugString, { fontSize: '16px', fill: '#FFF' });
         this.textCam = this.cameras.add(0, 620, 1280, 100, false, "debug");
@@ -88,26 +88,67 @@ export class Start extends Phaser.Scene {
         });
         */
 
-        const keyObjects = this.input.keyboard.addKeys({
-            up: "W",
-            down: "S",
-            left: "A",
-            right: "D"
-        });
+        this.keyObjects = class {};
+        
+        this.keyObjects.up = this.input.keyboard.addKey("W");
+        this.keyObjects.down = this.input.keyboard.addKey("S");
+        this.keyObjects.right = this.input.keyboard.addKey("D");
+        this.keyObjects.left = this.input.keyboard.addKey("A");
+        this.keyObjects.escape = this.input.keyboard.addKey("ESC");
         this.buffer = [];
 
         //add inputs to the buffer when pressed
-        keyObjects.right.on('down', function() {sceneRef.bufferInput("r")});
-        keyObjects.left.on('down', function() {sceneRef.bufferInput("l")});
-        keyObjects.up.on('down', function() {sceneRef.bufferInput("u")});
-        keyObjects.down.on('down', function() {sceneRef.bufferInput("d")});
+        this.keyObjects.right.on('down', function() {sceneRef.bufferInput("r")});
+        this.keyObjects.left.on('down', function() {sceneRef.bufferInput("l")});
+        this.keyObjects.up.on('down', function() {sceneRef.bufferInput("u")});
+        this.keyObjects.down.on('down', function() {sceneRef.bufferInput("d")});
 
         //remove inputs from the buffer when unpressed
-        keyObjects.right.on('up', function() {sceneRef.debufferInput("r")});
-        keyObjects.left.on('up', function() {sceneRef.debufferInput("l")});
-        keyObjects.up.on('up', function() {sceneRef.debufferInput("u")});
-        keyObjects.down.on('up', function() {sceneRef.debufferInput("d")});
+        this.keyObjects.right.on('up', function() {sceneRef.debufferInput("r")});
+        this.keyObjects.left.on('up', function() {sceneRef.debufferInput("l")});
+        this.keyObjects.up.on('up', function() {sceneRef.debufferInput("u")});
+        this.keyObjects.down.on('up', function() {sceneRef.debufferInput("d")});
+        this.keyObjects.escape.on('up', function() {sceneRef.forcePause()});
         this.curTime = Date.now();
+        
+
+        this.events.on("resume", function() { sceneRef.handleUnpause() });
+    }
+
+    handleUnpause() {
+        this.curTime = Date.now();
+        this.buffer = this.registry.get("buffer");
+        
+        // OLD
+        // const arr = this.buffer;
+        // if (arr.includes("u") && up.isUp) {
+        //     spliceBadInput("u");
+        // }
+        // if (arr.includes("d") && this.keyObjects.down.isUp) {
+        //     spliceBadInput("d");
+        // }
+        // if (arr.includes("r") && this.keyObjects.right.isUp) {
+        //     spliceBadInput("r");
+        // }
+        // if (arr.includes("l") && this.keyObjects.left.isUp) {
+        //     spliceBadInput("l");
+        // }
+        // //this.debugText.text = this.buffer.toLocaleString();
+
+        // function spliceBadInput(input){
+        //     do {
+        //         //const l = arr.length
+        //         const i = arr.indexOf(input);
+        //         arr.splice(i, 1);
+        //         //if (l == arr.length) break;
+        //     } while (arr.includes(input));
+        // } 
+    }
+
+    forcePause() {
+        this.registry.set("buffer", this.buffer);
+        this.scene.run("Pause");
+        this.scene.pause();
     }
 
     accelerateRight(dt) {
@@ -180,16 +221,16 @@ export class Start extends Phaser.Scene {
      * @param {String} dir directional input to add 
      */
     bufferInput(dir){
-        if (dir == "up" || dir == "u"){
+        if (dir == "up" || dir == "u" && !this.buffer.includes("u")){
             this.buffer.push("u");
         }
-        else if (dir == "down" || dir == "d"){
+        else if (dir == "down" || dir == "d" && !this.buffer.includes("d")){
             this.buffer.push("d");
         }
-        else if (dir == "left" || dir == "l"){
+        else if (dir == "left" || dir == "l" && !this.buffer.includes("l")){
             this.buffer.push("l");
         }
-        else if (dir == "right" || dir == "r"){
+        else if (dir == "right" || dir == "r" && !this.buffer.includes("r")){
             this.buffer.push("r");
         }
     }
@@ -214,7 +255,7 @@ export class Start extends Phaser.Scene {
         else return -1; //bad arg
         if (i == -1) return 0; //not in buffer
         const debug = this.buffer.splice(i, 1);
-        this.debugText.text = debug.toLocaleString();
+        //this.debugText.text = debug.toLocaleString();
     }
 
     unexpectedError() {

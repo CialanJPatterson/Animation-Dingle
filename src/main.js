@@ -1,4 +1,5 @@
 import { Start } from './scenes/Start.js';
+import { Pause } from './scenes/Pause.js';
 
 const config = {
     type: Phaser.AUTO,
@@ -10,7 +11,8 @@ const config = {
     backgroundColor: '#000000',
     pixelArt: true,
     scene: [
-        Start
+        Start,
+        Pause
     ],
     scale: {
         mode: Phaser.Scale.FIT,
