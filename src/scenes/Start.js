@@ -43,7 +43,7 @@ export class Start extends Phaser.Scene {
             for (let j = 0; j < this.map.layer.height; j++){
                 const testTile = this.map.getTileAt(i, j, true).index;
                 if (testTile != 41 && testTile != -1){
-                    const collisionRect = this.add.rectangle(i * 16 + 8, j * 16 + 188, 16, 16, 0xff0000, 0.5);
+                    const collisionRect = this.add.rectangle(i * 16 + 8, j * 16 + 188, 16, 16, 0xff0000, 0);
                     this.platforms.push(collisionRect);
                 }
             }
@@ -56,6 +56,9 @@ export class Start extends Phaser.Scene {
         this.anPhiast.deltax = 0;
         this.anPhiast.deltay = 0;
 
+        this.sample = this.sound.add("sample");
+        this.sample.play();
+        
         this.primaryCam = this.cameras.main;
         this.pixelCam = this.cameras.add(0, 0, 1280, 720, true, "pixel");
         this.pixelCam.setDeadzone(32, 40);
