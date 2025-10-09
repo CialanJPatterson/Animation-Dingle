@@ -5,15 +5,14 @@ export class Start extends Phaser.Scene {
     }
 
     preload() {
-        this.DIRECTION = [{
+        /* OLD: Phaser doesn't like enums in js ¯\_(ツ)_/¯
+        this.DIRECTION = {
             up: 1,
             down: 2,
             right: 3,
             left: 4
-        }]
-        this.ERROR_CODES = [{
-            moveError: 1
-        }]
+        }
+        */
         this.FPS = 60;
         this.MS_TO_FPS = this.FPS * .001;
 
@@ -55,6 +54,7 @@ export class Start extends Phaser.Scene {
         this.anPhiast.isGrounded = true;
         this.anPhiast.maxVelocity = 5;
         this.anPhiast.deltax = 0;
+        this.anPhiast.deltay = 0;
 
         this.primaryCam = this.cameras.main;
         this.pixelCam = this.cameras.add(0, 0, 1280, 720, true, "pixel");
@@ -88,31 +88,76 @@ export class Start extends Phaser.Scene {
         });
         */
 
-        this.keyObjects = class {};
-        
-        this.keyObjects.up = this.input.keyboard.addKey("W");
-        this.keyObjects.down = this.input.keyboard.addKey("S");
-        this.keyObjects.right = this.input.keyboard.addKey("D");
-        this.keyObjects.left = this.input.keyboard.addKey("A");
-        this.keyObjects.escape = this.input.keyboard.addKey("ESC");
         this.buffer = [];
+        this.addKeyInputs();
 
-        //add inputs to the buffer when pressed
-        this.keyObjects.right.on('down', function() {sceneRef.bufferInput("r")});
-        this.keyObjects.left.on('down', function() {sceneRef.bufferInput("l")});
-        this.keyObjects.up.on('down', function() {sceneRef.bufferInput("u")});
-        this.keyObjects.down.on('down', function() {sceneRef.bufferInput("d")});
+        this.curTime = Date.now();
+        this.events.on("resume", function() { sceneRef.handleUnpause() });
+    }
+
+    addKeyInputs() {
+        const sceneRef = this;
+        this.keyObjects = class {};
+        //Add Keys to KeyObject class
+        {
+            //WASD Movement
+            this.keyObjects.up = this.input.keyboard.addKey("W");
+            this.keyObjects.down = this.input.keyboard.addKey("S");
+            this.keyObjects.right = this.input.keyboard.addKey("D");
+            this.keyObjects.left = this.input.keyboard.addKey("A");
+            //Arrow Key Movement
+            this.keyObjects.upArrow = this.input.keyboard.addKey("Up");
+            this.keyObjects.downArrow = this.input.keyboard.addKey("Down");
+            this.keyObjects.rightArrow = this.input.keyboard.addKey("Right");
+            this.keyObjects.leftArrow = this.input.keyboard.addKey("Left");
+            //Other Actions
+            this.keyObjects.jump = this.input.keyboard.addKey("Space");
+            this.keyObjects.ability = this.input.keyboard.addKey("K");
+            this.keyObjects.cycleright = this.input.keyboard.addKey("E");
+            this.keyObjects.cycleleft = this.input.keyboard.addKey("Q");
+            //Pause
+            this.keyObjects.pause = this.input.keyboard.addKey("ESC");
+        }
+
+        //add inputs to the buffer when pressed 
+        {
+            //WASD Movement
+            this.keyObjects.right.on('down', function() {sceneRef.bufferInput("r")});
+            this.keyObjects.left.on('down', function() {sceneRef.bufferInput("l")});
+            this.keyObjects.up.on('down', function() {sceneRef.bufferInput("u")});
+            this.keyObjects.down.on('down', function() {sceneRef.bufferInput("d")});
+            //Arrow Key Movement
+            this.keyObjects.rightArrow.on('down', function() {sceneRef.bufferInput("r")});
+            this.keyObjects.leftArrow.on('down', function() {sceneRef.bufferInput("l")});
+            this.keyObjects.upArrow.on('down', function() {sceneRef.bufferInput("u")});
+            this.keyObjects.downArrow.on('down', function() {sceneRef.bufferInput("d")});
+            //Other Actions
+            this.keyObjects.jump.on('down', function() {sceneRef.bufferInput("j")});
+            this.keyObjects.ability.on('down', function() {sceneRef.bufferInput("a")});
+            this.keyObjects.cycleright.on('down', function() {sceneRef.bufferInput(">")});
+            this.keyObjects.cycleleft.on('down', function() {sceneRef.bufferInput("<")});
+        }
 
         //remove inputs from the buffer when unpressed
-        this.keyObjects.right.on('up', function() {sceneRef.debufferInput("r")});
-        this.keyObjects.left.on('up', function() {sceneRef.debufferInput("l")});
-        this.keyObjects.up.on('up', function() {sceneRef.debufferInput("u")});
-        this.keyObjects.down.on('up', function() {sceneRef.debufferInput("d")});
-        this.keyObjects.escape.on('up', function() {sceneRef.forcePause()});
-        this.curTime = Date.now();
-        
-
-        this.events.on("resume", function() { sceneRef.handleUnpause() });
+        {
+            //WASD Movement
+            this.keyObjects.right.on('up', function() {sceneRef.debufferInput("r")});
+            this.keyObjects.left.on('up', function() {sceneRef.debufferInput("l")});
+            this.keyObjects.up.on('up', function() {sceneRef.debufferInput("u")});
+            this.keyObjects.down.on('up', function() {sceneRef.debufferInput("d")});
+            //Arrow Key Movement
+            this.keyObjects.rightArrow.on('up', function() {sceneRef.debufferInput("r")});
+            this.keyObjects.leftArrow.on('up', function() {sceneRef.debufferInput("l")});
+            this.keyObjects.upArrow.on('up', function() {sceneRef.debufferInput("u")});
+            this.keyObjects.downArrow.on('up', function() {sceneRef.debufferInput("d")});
+            //Other Actions
+            this.keyObjects.jump.on('up', function() {sceneRef.debufferInput("j")});
+            this.keyObjects.ability.on('up', function() {sceneRef.debufferInput("a")});
+            this.keyObjects.cycleright.on('up', function() {sceneRef.debufferInput(">")});
+            this.keyObjects.cycleleft.on('up', function() {sceneRef.debufferInput("<")});
+            //Pause
+            this.keyObjects.pause.on('up', function() {sceneRef.forcePause()});
+        }
     }
 
     handleUnpause() {
@@ -151,10 +196,13 @@ export class Start extends Phaser.Scene {
         this.scene.pause();
     }
 
+    /**
+     * @param {number} dt deltatime
+     */
     accelerateRight(dt) {
-        let acc = 0.05;
+        let acc = 0.075;
         if (this.anPhiast.isGrounded){
-            acc += 0.1;
+            acc += 0.075;
         }
         acc *= dt;
         this.anPhiast.deltax += acc;
@@ -163,10 +211,13 @@ export class Start extends Phaser.Scene {
         }
     }
 
+    /**
+     * @param {number} dt deltatime
+     */
     accelerateLeft(dt) {
-       let acc = 0.05;
+       let acc = 0.075;
         if (this.anPhiast.isGrounded){
-            acc += 0.1;
+            acc += 0.075;
         }
         acc *= dt;
         this.anPhiast.deltax -= acc;
@@ -175,15 +226,37 @@ export class Start extends Phaser.Scene {
         }
     }
 
+    /**
+     * @param {number} dt deltatime
+     */
+    jump(dt) {
+        this.anPhiast.isGrounded = false;
+        this.anPhiast.deltay += 5;
+    }
+
+    /**
+     * @param {number} dt deltatime
+     */
+    handleGravity(dt) {
+        this.gravity = 0.2;
+        this.anPhiast.airResistance = 1.05;
+        let dY = this.anPhiast.deltay;
+        if (this.buffer.includes("j") && dY > 0){
+            dY -= this.gravity * .25 * dt;
+        }
+        else {
+            dY -= this.gravity * 2 * dt;
+        }
+        dY *= 1 / this.anPhiast.airResistance;
+        this.anPhiast.deltay = dY;
+        this.debugText.text = this.anPhiast.deltay;
+    }
+
     /** Handles accel/decel and eventual movement
      * @param {number} deltatime the time in milliseconds since the last update
      */
     movePlayer(deltatime){
         let dX = this.anPhiast.deltax; // initialise local variable to avoid corrupting class member
-        if (dX == 0 && this.buffer.length == 0) {
-            //this.anPhiast.play(idle)
-            return;
-        }
         dX *= 0.95; // decelerate
         if (dX >= 0.001) {
             dX -= 0.001;
@@ -197,7 +270,7 @@ export class Start extends Phaser.Scene {
         //set class member to dX
         this.anPhiast.deltax = dX;
 
-        if (this.buffer.includes("r")){
+        if (this.buffer.includes("r")) {
             this.accelerateRight(deltatime);
         }
         if (this.buffer.includes("l")) {
@@ -205,6 +278,9 @@ export class Start extends Phaser.Scene {
         }
         // this.debugText.text = this.buffer.length; DEBUG
         if (this.anPhiast.isGrounded){
+            if (this.buffer.includes("j")) {
+                this.jump(deltatime);
+            }
             if (this.anPhiast.deltax > 0){
                 this.anPhiast.setFlipX(false);
             }
@@ -212,45 +288,80 @@ export class Start extends Phaser.Scene {
                 this.anPhiast.setFlipX(true);
             }
         }
+        else {
+            this.handleGravity(deltatime);
+        }
+        if (this.buffer.includes("a")){
+            this.anPhiast.isGrounded = true;
+            this.anPhiast.deltay = 0;
+            this.anPhiast.y = 260;
+        }
         //move
         this.anPhiast.x += this.anPhiast.deltax;
+        this.anPhiast.y -= this.anPhiast.deltay;
         // this.debugText.text = this.anPhiast.deltax; DEBUG
     }
 
     /** Adds inputs to the buffer 
-     * @param {String} dir directional input to add 
+     * @param {String} input directional input to add 
      */
-    bufferInput(dir){
-        if (dir == "up" || dir == "u" && !this.buffer.includes("u")){
+    bufferInput(input){
+        input = input.toLowerCase();
+        if (input == "up" || input == "u" && !this.buffer.includes("u")){
             this.buffer.push("u");
         }
-        else if (dir == "down" || dir == "d" && !this.buffer.includes("d")){
+        else if (input == "down" || input == "d" && !this.buffer.includes("d")){
             this.buffer.push("d");
         }
-        else if (dir == "left" || dir == "l" && !this.buffer.includes("l")){
+        else if (input == "left" || input == "l" && !this.buffer.includes("l")){
             this.buffer.push("l");
         }
-        else if (dir == "right" || dir == "r" && !this.buffer.includes("r")){
+        else if (input == "right" || input == "r" && !this.buffer.includes("r")){
             this.buffer.push("r");
+        }
+        else if (this.anPhiast.isGrounded && (input == "jump" || input == "space" || input == "j") && !this.buffer.includes("j")){
+            this.buffer.push("j");
+        }
+        else if (input == "ability" || input == "ABILITY_KEY" /* TODO: add key */ || input == "a" && !this.buffer.includes("a")){
+            this.buffer.push("a");
+        }
+        else if (input == "cycleleft" || input == "q" || input == "<" && !this.buffer.includes("<")){
+            this.buffer.push("<");
+        }
+        else if (input == "cycleright" || input == "e" || input == ">" && !this.buffer.includes(">")){
+            this.buffer.push(">");
         }
     }
 
     /** Removes inputs from the buffer 
-     * @param {String} dir directional input to remove 
+     * @param {String} input directional input to remove 
      */
-    debufferInput(dir){
+    debufferInput(input){
         let i = -1;
-        if (dir == "up" || dir == "u"){
+        input = input.toLowerCase();
+        if (input == "up" || input == "u"){
             i = this.buffer.indexOf("u");
         }
-        else if (dir == "down" || dir == "d"){
+        else if (input == "down" || input == "d"){
             i = this.buffer.indexOf("d");
         }
-        else if (dir == "left" || dir == "l"){
+        else if (input == "left" || input == "l"){
             i = this.buffer.indexOf("l");
         }
-        else if (dir == "right" || dir == "r"){
+        else if (input == "right" || input == "r"){
             i = this.buffer.indexOf("r");
+        }
+        else if (input == "jump" || input == "space" || input == "j"){
+            i = this.buffer.indexOf("j");
+        }
+        else if (input == "ability" || input == "ABILITY_KEY" /* TODO: add key */ || input == "a"){
+            i = this.buffer.indexOf("a");
+        }
+        else if (input == "cycleleft" || input == "q" || input == "<"){
+            i = this.buffer.indexOf("<");
+        }
+        else if (input == "cycleright" || input == "e" || input == ">"){
+            i = this.buffer.indexOf(">");
         }
         else return -1; //bad arg
         if (i == -1) return 0; //not in buffer
