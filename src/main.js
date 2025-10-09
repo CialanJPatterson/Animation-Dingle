@@ -2,7 +2,7 @@ import { Start } from './scenes/Start.js';
 import { Pause } from './scenes/Pause.js';
 
 const config = {
-    type: Phaser.AUTO,
+    type: Phaser.CANVAS,
     title: 'Overlord Rising',
     description: '',
     parent: 'game-container',
@@ -10,6 +10,24 @@ const config = {
     height: 720,
     backgroundColor: '#000000',
     pixelArt: true,
+    physics: {
+        default: 'arcade',
+        arcade: {
+        x: 0,
+        y: 0,
+        gravity: {
+        x: 0,
+        y: 2
+        },
+        checkCollision: {
+        up: true,
+        down: true,
+        left: true,
+        right: true
+        },
+        customUpdate: true
+        }
+    },
     scene: [
         Start,
         Pause
@@ -21,4 +39,3 @@ const config = {
 }
 
 new Phaser.Game(config);
-            

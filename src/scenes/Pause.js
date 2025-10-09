@@ -40,7 +40,7 @@ export class Pause extends Phaser.Scene {
             this.keyObjects.leftArrow = this.input.keyboard.addKey("Left");
             //Other Actions
             this.keyObjects.jump = this.input.keyboard.addKey("Space");
-            this.keyObjects.ability = this.input.keyboard.addKey("K");
+            this.keyObjects.ability = this.input.keyboard.addKey("F");
             this.keyObjects.cycleright = this.input.keyboard.addKey("E");
             this.keyObjects.cycleleft = this.input.keyboard.addKey("Q");
             //Pause

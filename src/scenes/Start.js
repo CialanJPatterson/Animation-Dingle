@@ -5,6 +5,7 @@ export class Start extends Phaser.Scene {
     }
 
     preload() {
+        this.physics.enableUpdate();
         /* OLD: Phaser doesn't like enums in js ¯\_(ツ)_/¯
         this.DIRECTION = {
             up: 1,
@@ -16,15 +17,18 @@ export class Start extends Phaser.Scene {
         this.FPS = 60;
         this.MS_TO_FPS = this.FPS * .001;
 
+        
         //this.load.image('phiast', 'assets/space.png');
         //this.load.image('logo', 'assets/phaser.png');
         this.load.atlas('grassTiles', 'assets/tilesets/grassTiles.png', 'assets/tilesets/grassTiles.json');
         this.load.tilemapCSV('levelDebug', 'assets/tilemaps/levelDebug.csv');
         this.load.spritesheet('phiast', 'assets/anPhiast.png', { frameWidth: 48, frameHeight: 64 });
+        this.load.spritesheet('blob', 'assets/blob.png', { frameWidth: 16, frameHeight: 16 });
     }
 
     create() {
         const sceneRef = this;
+        const TILESIZE = 24;
         /**@type {Number[]} */
         //this.debugArray = [];
         let debugString = "debug";
@@ -37,27 +41,46 @@ export class Start extends Phaser.Scene {
         const mapDebug = this.add.tilemap('levelDebug',16,16);
         const tilesDebug = mapDebug.addTilesetImage('grassTiles');
         this.map = mapDebug.createLayer(0, tilesDebug, 0, 180);
+        //const tileBodies = this.physics.add.existing(this.map.layer.bodies);
         //this.map.setTintFill(0xff0000);
         this.platforms = [];
         for (let i = 0; i < this.map.layer.width; i++){
             for (let j = 0; j < this.map.layer.height; j++){
                 const testTile = this.map.getTileAt(i, j, true).index;
                 if (testTile != 41 && testTile != -1){
-                    const collisionRect = this.add.rectangle(i * 16 + 8, j * 16 + 188, 16, 16, 0xff0000, 0);
+                    const collisionRect = this.physics.add.body(i * 16 + 8, j * 16 + 188, 16, 16);
+                    collisionRect.setImmovable(true);
+                    collisionRect.debugBodyColor = 0xff0000;
+                    collisionRect.debugShowBody = true;
+                    collisionRect.checkCollision.down = true;
+                    collisionRect.checkCollision.left = true;
+                    collisionRect.checkCollision.up = true;
+                    collisionRect.checkCollision.right = true;
+                    collisionRect.willCollideWith(1);
                     this.platforms.push(collisionRect);
                 }
             }
         }
-
-        this.anPhiast = this.add.sprite(120, 260, 'phiast');
-        this.anPhiast.scale = 0.5;
+        this.anPhiast = this.physics.add.sprite(0, 0, 'phiast');
+        this.anPhiast.startingTile = {x:5, y:11.5};
+        this.anPhiast.setPosition(TILESIZE * this.anPhiast.startingTile.x, TILESIZE * this.anPhiast.startingTile.y);
+        this.anPhiast.setScale(0.5);
+        this.anPhiast.setOrigin(0.5, 1);
         this.anPhiast.isGrounded = true;
         this.anPhiast.maxVelocity = 5;
         this.anPhiast.deltax = 0;
         this.anPhiast.deltay = 0;
+        this.anPhiast.addCollidesWith(1);
+        this.anPhiast.body.checkCollision.down = true;
+        this.anPhiast.body.checkCollision.left = true;
+        this.anPhiast.body.checkCollision.up = true;
+        this.anPhiast.body.checkCollision.right = true;
 
-        this.sample = this.sound.add("sample");
-        this.sample.play();
+        this.enemies = [];
+        this.populateEnemies(TILESIZE);
+
+        //this.sample = this.sound.add("sample");
+        //this.sample.play();
         
         this.primaryCam = this.cameras.main;
         this.pixelCam = this.cameras.add(0, 0, 1280, 720, true, "pixel");
@@ -98,6 +121,27 @@ export class Start extends Phaser.Scene {
         this.events.on("resume", function() { sceneRef.handleUnpause() });
     }
 
+    /** Adds enemies to the map equal to num
+     * @param {number} tile size of tiles
+     * @param {number} num number of enemies to add, default 1
+     */
+    populateEnemies(tile, num = 1) {
+        if (num < 1) return;
+        num = Math.trunc(num);
+        for (let i = 0; i < num; i++) {
+            const tilePos = { x:Math.floor(Math.random()*40)/2 + 10, y:11.5 };
+            const truePos = { x:tile*tilePos.x, y:tile*tilePos.y};
+            const newEnemy = this.add.sprite(truePos.x, truePos.y, 'blob');
+            newEnemy.setScale(1.5);
+            newEnemy.setOrigin(0.5, 1);
+            newEnemy.startingTile = tilePos;
+            this.physics.world.enable(newEnemy);
+            this.enemies.push(newEnemy);
+            this.debugText.text = tilePos.x;
+            //newEnemy.destroy();
+        }
+    }
+
     addKeyInputs() {
         const sceneRef = this;
         this.keyObjects = class {};
@@ -115,7 +159,7 @@ export class Start extends Phaser.Scene {
             this.keyObjects.leftArrow = this.input.keyboard.addKey("Left");
             //Other Actions
             this.keyObjects.jump = this.input.keyboard.addKey("Space");
-            this.keyObjects.ability = this.input.keyboard.addKey("K");
+            this.keyObjects.ability = this.input.keyboard.addKey("F");
             this.keyObjects.cycleright = this.input.keyboard.addKey("E");
             this.keyObjects.cycleleft = this.input.keyboard.addKey("Q");
             //Pause
