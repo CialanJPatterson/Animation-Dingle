@@ -3,14 +3,19 @@
         "height": 4300,
         "width": 2
     },
-    "activeFile": "assets/tilemaps/levelDebug.tmx",
+    "activeFile": "assets/tilesets/grassTiles.tsx",
     "expandedProjectPaths": [
-        "assets/tilemaps",
+        "assets/tilesets",
         "assets",
         ".",
-        "assets/tilesets"
+        "assets/tilemaps"
     ],
+    "exportAsImage.useCurrentScale": true,
     "fileStates": {
+        "": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
         "assets/tilemaps/levelDebug.json": {
             "scale": 2,
             "selectedLayer": 0,
@@ -20,12 +25,15 @@
             }
         },
         "assets/tilemaps/levelDebug.tmx": {
-            "scale": 0.75,
-            "selectedLayer": 0,
+            "scale": 1.5,
+            "selectedLayer": -1,
             "viewCenter": {
-                "x": 455.3333333333333,
-                "y": 210
+                "x": 349.3333333333333,
+                "y": 68.99999999999997
             }
+        },
+        "assets/tilemaps/levelDebug.tmx#grassTiles": {
+            "scaleInDock": 1
         },
         "assets/tilesets/grassTiles.json": {
             "scaleInDock": 1,
@@ -33,14 +41,14 @@
         },
         "assets/tilesets/grassTiles.tsx": {
             "scaleInDock": 1.5,
-            "scaleInEditor": 2
+            "scaleInEditor": 8
         }
     },
-    "last.exportedFilePath": "C:/GLP/Dingle Project/assets/tilemaps",
+    "last.exportedFilePath": "C:/GLP/Animation-Dingle/assets/tilesets",
     "last.imagePath": "C:/GLP/Dingle Project/assets/tilesets",
     "lastUsedTilesetExportFilter": "JSON tileset files (*.tsj *.json)",
     "map.height": 8,
-    "map.lastUsedExportFilter": "CSV files (*.csv)",
+    "map.lastUsedExportFilter": "JSON map files (*.tmj *.json)",
     "map.lastUsedFormat": "tmx",
     "map.tileHeight": 16,
     "map.tileWidth": 16,
@@ -51,8 +59,8 @@
     ],
     "project": "tilemap level debug.tiled-project",
     "recentFiles": [
-        "assets/tilesets/grassTiles.tsx",
         "assets/tilemaps/levelDebug.tmx",
+        "assets/tilesets/grassTiles.tsx",
         "assets/tilesets/grassTiles.json",
         "assets/tilemaps/levelDebug.json"
     ],
