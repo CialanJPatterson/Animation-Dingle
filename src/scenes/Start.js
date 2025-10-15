@@ -434,17 +434,17 @@ export class Start extends Phaser.Scene {
             this.handleGravity(deltatime);
         }
         const collisionArray = [];
-        this.layerDebug.forEachTile(tile => { 
-            if (this.matter.containsPoint(this.matter.getMatterBodies(this.layerDebug), this.anPhiast.getWorldPoint().x, this.anPhiast.getWorldPoint().y)){
-                collisionArray.push(tile);
-            }
-            });
-        const collision = this.matter.containsPoint(collisionArray, this.anPhiast.getWorldPoint().x, this.anPhiast.getWorldPoint().x);
-        if (this.anPhiast.deltay <= 0 && collision) {
+        //this.layerDebug.forEachTile(tile => { 
+            //if (this.matter.containsPoint(this.matter.getMatterBodies(this.layerDebug), this.anPhiast.getWorldPoint().x, this.anPhiast.getWorldPoint().y)){
+                //collisionArray.push(tile);
+            //}
+            //});
+        //const collision = this.matter.containsPoint(collisionArray, this.anPhiast.getWorldPoint().x, this.anPhiast.getWorldPoint().x);
+        //if (this.anPhiast.deltay <= 0 && collision) {
             this.anPhiast.isGrounded = true;
             this.anPhiast.deltay = 0;
             this.debugText.text = "ground";
-        }
+        //}
         //move
         this.anPhiast.x += this.anPhiast.deltax;
         this.anPhiast.y -= this.anPhiast.deltay;
