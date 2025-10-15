@@ -12,7 +12,7 @@ const config = {
     pixelArt: true,
     physics: {
         default: 'matter',
-        arcade: {
+        matter: {
         x: 0,
         y: 0,
         gravity: {

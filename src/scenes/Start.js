@@ -38,8 +38,6 @@ export class Start extends Phaser.Scene {
         //this.debugArray = [];
         let debugString = "debug";
         this.debugText = this.add.text(5000, 0, debugString, { fontSize: '16px', fill: '#FFF' });
-        this.textCam = this.cameras.add(0, 620, 1280, 100, false, "debug");
-        this.textCam.startFollow(this.debugText);
         //this.background = this.add.tileSprite(640, 360, 1280, 720, 'background');
 
         //const logo = this.add.image(640, 200, 'logo');
@@ -85,25 +83,32 @@ export class Start extends Phaser.Scene {
         this.pixelCam.useBounds = true;
         //this.pixelCam.clampY(360);
 
+        this.textCam = this.cameras.add(0, 620, 1280, 100, false, "debug");
+        this.textCam.startFollow(this.debugText);
+
         for (let i = 0; i < this.cameras.cameras.length; i++){
             this.cameras.cameras[i].setVisible(false);
         }
         this.pixelCam.setVisible(true);
         this.textCam.setVisible(true);
 
-        this.anPhiast = this.matter.add.sprite(0, 0, 'phiast', 0, { angle: 0, restitution: 0, density: 50 });
+        this.anPhiast = this.add.sprite(0, 0, 'phiast', 0);
         this.anPhiast.startingTile = {x:5, y:11};
+        this.anPhiast.setOrigin(0.5, 1);
+        this.anPhiast.setScale(0.375);
+        this.anPhiast.maxVelocity = 50;
+        this.anPhiast.setVisible(true);
         this.anPhiast.setPosition(this.TILESIZE * this.anPhiast.startingTile.x, this.TILESIZE * this.anPhiast.startingTile.y);
-        this.anPhiast.setScale(0.5);
-        this.anPhiast.isGrounded = true;
-        this.anPhiast.maxVelocity = 5;
+        this.anPhiast.isGrounded = false;
+        this.anPhiast.canJump = false;
         this.anPhiast.deltax = 0;
         this.anPhiast.deltay = 0;
-        this.anPhiast.setVisible(true);
-        this.anPhiast.setBounce(0);
-        this.anPhiast.setFixedRotation();
-        this.anPhiast.setIgnoreGravity(true);
-        this.anPhiast.setOnCollide(function () {this.isGrounded = true;})
+        // this.anPhiast.setBounce(0);
+        // this.anPhiast.setFixedRotation();
+        // this.anPhiast.setIgnoreGravity(true);
+        //this.anPhiast.isColliding = false;
+        //this.anPhiast.collideY = 0;
+        //this.anPhiast.setOnCollide(function () {this.isGrounded = true;})
 
         this.pixelCam.startFollow(this.anPhiast);
         /*this.anPhiast.addCollidesWith(1);
@@ -114,19 +119,6 @@ export class Start extends Phaser.Scene {
 
         this.enemies = [];
         this.populateEnemies(this.TILESIZE);
-
-        // // Drop bouncy, Matter balls on pointer down
-        // this.input.on('pointerdown', function ()
-        // {
-        //     const worldPoint = sceneRef.input.activePointer.positionToCamera(sceneRef.pixelCam);
-        //     for (let i = 0; i < 4; i++)
-        //     {
-        //         const x = worldPoint.x + Phaser.Math.RND.integerInRange(-5, 5);
-        //         const y = worldPoint.y + Phaser.Math.RND.integerInRange(-5, 5);
-        //         const frame = Phaser.Math.RND.integerInRange(0, 5);
-        //         sceneRef.matter.add.image(x, y, 'blob', 0, { restitution: 1 });
-        //     }
-        // });
 
         //this.sample = this.sound.add("sample");
         //this.sample.play();
@@ -154,8 +146,62 @@ export class Start extends Phaser.Scene {
         this.buffer = [];
         this.addKeyInputs();
 
+        // this.matter.world.on('collisionstart', function (event)
+        // {
+        //     for (let i = 0; i < event.pairs.length; i++)
+        //     {
+        //         // The tile bodies in this example are a mixture of compound bodies and simple rectangle
+        //         // bodies. The "label" property was set on the parent body, so we will first make sure
+        //         // that we have the top level body instead of a part of a larger compound body.
+        //         const bodyA = this.getRootBody(event.pairs[i].bodyA);
+        //         const bodyB = this.getRootBody(event.pairs[i].bodyB);
+
+        //         if ((bodyA.label === "player" && bodyB.label === "collisionTile") ||
+        //             (bodyB.label === "player" && bodyA.label === "collisionTile"))
+        //         {
+        //             const playerBody = bodyA.label === "player" ? bodyA : bodyB;
+        //             const tileBody = bodyA.label === "collisionTile" ? bodyA : bodyB;
+        //             const player = playerBody.gameObject;
+        //             const colTile = tileBody.gameObject;
+
+        //             if (player.isColliding && colTile.getTop() <= player.collideY) {
+        //                 continue;
+        //             }
+                    
+        //             this.debugText.text = "collided";
+        //             player.isGrounded = true;
+        //             player.collideY = colTile.getTop();
+
+        //             //// A body may collide with multiple other bodies in a step, so we'll use a flag to
+        //             // if (player.isBeingDestroyed)
+        //             // {
+        //             //     continue;
+        //             // }
+        //             // player.isBeingDestroyed = true;
+
+        //             // this.matter.world.remove(playerBody);
+
+        //             // this.tweens.add({
+        //             //     targets: player,
+        //             //     alpha: { value: 0, duration: 150, ease: 'Power1' },
+        //             //     onComplete: (player => { player.destroy(); }).bind(this, player)
+        //             // });
+        //         }
+        //     }
+        // }, this);
         this.curTime = Date.now();
         this.events.on("resume", function() { sceneRef.handleUnpause() });
+        this.coyoteTime = 0;
+    }
+
+    getRootBody (body)
+    {
+        if (body.parent === body) { return body; }
+        while (body.parent !== body)
+        {
+            body = body.parent;
+        }
+        return body;
     }
 
     /** Adds enemies to the map equal to num
@@ -174,7 +220,7 @@ export class Start extends Phaser.Scene {
             newEnemy.startingTile = tilePos;
             //this.physics.world.enable(newEnemy);
             this.enemies.push(newEnemy);
-            this.debugText.text = tilePos.x;
+            //this.debugText.text = tilePos.x;
             //newEnemy.destroy();
         }
     }
@@ -372,7 +418,7 @@ export class Start extends Phaser.Scene {
      * @param {number} dt deltatime
      */
     jump(dt) {
-        this.anPhiast.isGrounded = false;
+        this.anPhiast.canJump = false;
         this.anPhiast.deltay = 5;
     }
 
@@ -391,7 +437,7 @@ export class Start extends Phaser.Scene {
         }
         dY *= 1 / this.anPhiast.airResistance;
         this.anPhiast.deltay = dY;
-        this.debugText.text = this.anPhiast.deltay;
+        //this.debugText.text = this.anPhiast.deltay;
     }
 
     /** Handles accel/decel and eventual movement
@@ -419,7 +465,7 @@ export class Start extends Phaser.Scene {
             this.accelerateLeft(deltatime);
         }
         // this.debugText.text = this.buffer.length; DEBUG
-        if (this.anPhiast.isGrounded){
+        if (this.anPhiast.canJump){
             if (this.buffer.includes("j")) {
                 this.jump(deltatime);
             }
@@ -433,7 +479,114 @@ export class Start extends Phaser.Scene {
         else {
             this.handleGravity(deltatime);
         }
-        const collisionArray = [];
+        const boundsPlayer = {
+            y:this.anPhiast.getCenter().y,
+            x:this.anPhiast.x,
+            l:this.anPhiast.getLeftCenter().x,
+            r:this.anPhiast.getRightCenter().x,
+            t:this.anPhiast.getTopCenter().y,
+            b:this.anPhiast.getBottomCenter().y,
+            h:this.anPhiast.height * this.anPhiast.scale,
+            w:this.anPhiast.width * this.anPhiast.scale
+        }
+        let isCollideY = false;
+        this.anPhiast.isGrounded = false;
+        let isCollideUnderPlat = false;
+        let isCollideX = false;
+        let curY = this.anPhiast.y;
+        let curX = this.anPhiast.x;
+
+        this.layerDebug.forEachTile(tile => {
+            if (tile.index == -1 || tile.index == 42) return;
+            //tile.tint = 0xff0000;
+            //tile.getTileData();
+            //const t = tile.getCollisionGroup()
+            const tBounds = {
+                t:tile.getTop(),
+                b:tile.getBottom(),
+                l:tile.getLeft(),
+                r:tile.getRight(),
+                s:tile.height
+            }
+            const cPad = 0.01;
+            const dX = 2 * Math.abs(this.anPhiast.deltax) + cPad;
+            const dY = 2 * Math.abs(this.anPhiast.deltay);
+            const containsPhiastB = tBounds.t <= boundsPlayer.b && tBounds.b >= boundsPlayer.b;
+            const containsPhiastT = tBounds.t <= boundsPlayer.t && tBounds.b >= boundsPlayer.t;
+            const containsPhiastR = tBounds.l <= boundsPlayer.r && tBounds.r >= boundsPlayer.r;
+            const containsPhiastL = tBounds.l <= boundsPlayer.l && tBounds.r >= boundsPlayer.l;
+            const containsMidX = (tBounds.l <= boundsPlayer.x - (boundsPlayer.w * (1 / 8)) 
+                && tBounds.r >= boundsPlayer.x - (boundsPlayer.w * (1 / 8)))
+                || (tBounds.l <= boundsPlayer.x + (boundsPlayer.w * (1 / 8)) 
+                && tBounds.r >= boundsPlayer.x + (boundsPlayer.w * (1 / 8)))
+                || (tBounds.l <= boundsPlayer.x && tBounds.r >= boundsPlayer.x);
+            const containsPhiastY = (tBounds.t <= boundsPlayer.y && tBounds.b >= boundsPlayer.y) || containsPhiastB || containsPhiastT;
+            const containsPhiastX = (tBounds.l <= boundsPlayer.x && tBounds.r >= boundsPlayer.x) || containsPhiastL || containsPhiastR;
+
+            if (containsPhiastB && (containsMidX || containsPhiastX) && this.anPhiast.deltay <= 0) {
+                if (containsMidX) {
+                    if (curY > tBounds.t){
+                        curY = tBounds.t - cPad;
+                        this.anPhiast.y = curY;
+                    }
+                }
+                if (containsPhiastX){
+                    isCollideY = true;
+                }
+                this.debugText.text = "land";
+            }
+            else if (containsMidX && containsPhiastT && this.anPhiast.deltay >= 0) {
+                isCollideUnderPlat = true;
+                curY = tBounds.b + boundsPlayer.h;
+            }
+            else if (containsPhiastY && (containsPhiastR || containsPhiastL)) {
+                if (containsPhiastR && this.anPhiast.deltax >= 0) {
+                    if (!isCollideX){
+                        isCollideX = true;
+                    }
+                    else if (boundsPlayer.r > tBounds.l){
+                        curX = tBounds.l - boundsPlayer.w/2 - cPad;
+                    }
+                    else if (curX > tBounds.l - boundsPlayer.w/2){
+                        curX = tBounds.l - boundsPlayer.w/2 - cPad;
+                    }
+                }
+                if (containsPhiastL && this.anPhiast.deltax <= 0) {
+                    if (!isCollideX){
+                        isCollideX = true;
+                    }
+                    else if (boundsPlayer.l < tBounds.r){
+                        curX = tBounds.r + boundsPlayer.w/2 + cPad;
+                    }
+                    else if (curX < tBounds.r + boundsPlayer.w/2){
+                        curX = tBounds.r + boundsPlayer.w/2 + cPad;
+                    }
+                }
+            }
+        }, this)
+        
+        if (isCollideX){
+            this.anPhiast.deltax = 0;
+            this.anPhiast.x = curX;
+        }
+
+        if (isCollideUnderPlat){
+            this.anPhiast.y = curY;
+            this.anPhiast.deltay = -0.001 * deltatime;
+        }
+
+        if (isCollideY){
+            // this.anPhiast.y = this.anPhiast.collideY;
+            this.anPhiast.deltay *= 0.9;
+            this.anPhiast.canJump = true;
+            this.anPhiast.isGrounded = true;
+            this.coyoteTime = 10;
+        }
+        else {
+            this.anPhiast.isGrounded = false;
+        }
+        
+        // OLD
         //this.layerDebug.forEachTile(tile => { 
             //if (this.matter.containsPoint(this.matter.getMatterBodies(this.layerDebug), this.anPhiast.getWorldPoint().x, this.anPhiast.getWorldPoint().y)){
                 //collisionArray.push(tile);
@@ -441,14 +594,26 @@ export class Start extends Phaser.Scene {
             //});
         //const collision = this.matter.containsPoint(collisionArray, this.anPhiast.getWorldPoint().x, this.anPhiast.getWorldPoint().x);
         //if (this.anPhiast.deltay <= 0 && collision) {
-            this.anPhiast.isGrounded = true;
-            this.anPhiast.deltay = 0;
-            this.debugText.text = "ground";
+            //this.anPhiast.isGrounded = true;
+            //this.anPhiast.deltay = 0;
+            //this.debugText.text = "ground";
         //}
+
         //move
         this.anPhiast.x += this.anPhiast.deltax;
         this.anPhiast.y -= this.anPhiast.deltay;
         // this.debugText.text = this.anPhiast.deltax; DEBUG
+        if (this.anPhiast.y > 800) {
+            this.respawnAnPhiast();
+        }
+    }
+
+    respawnAnPhiast() {
+        this.anPhiast.setPosition(this.TILESIZE * this.anPhiast.startingTile.x, this.TILESIZE * this.anPhiast.startingTile.y);
+        this.anPhiast.isGrounded = false;
+        this.anPhiast.canJump = false;
+        this.anPhiast.deltax = 0;
+        this.anPhiast.deltay = 0;
     }
 
     /** Adds inputs to the buffer 
@@ -468,7 +633,7 @@ export class Start extends Phaser.Scene {
         else if (input == "right" || input == "r" && !this.buffer.includes("r")){
             this.buffer.push("r");
         }
-        else if (this.anPhiast.isGrounded && (input == "jump" || input == "space" || input == "j") && !this.buffer.includes("j")){
+        else if (this.anPhiast.canJump && (input == "jump" || input == "space" || input == "j") && !this.buffer.includes("j")){
             this.buffer.push("j");
         }
         else if (input == "ability" || input == "ABILITY_KEY" /* TODO: add key */ || input == "a" && !this.buffer.includes("a")){
@@ -527,6 +692,12 @@ export class Start extends Phaser.Scene {
         const prevTime = this.curTime;
         this.curTime = Date.now();
         const deltatime = (this.curTime - prevTime) * this.MS_TO_FPS; //should be around 1
+
+        this.coyoteTime -= deltatime;
+        if (this.coyoteTime < 0){
+            this.coyoteTime = 0;
+            this.anPhiast.canJump = false;
+        }
         
         /* DEBUG
         const dt_sec = 1000 / (this.curTime - prevTime);
