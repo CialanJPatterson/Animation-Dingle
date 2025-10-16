@@ -15,6 +15,9 @@ export class Start extends Phaser.Scene {
         
         this.load.tilemapTiledJSON('levelDebug', 'assets/tilemaps/levelDebug.json');
         this.load.image('grassTiles', 'assets/tilesets/grassTiles.png');
+        this.load.image('potIcon', 'assets/pot-icon.png');
+        this.load.image('wKey', 'assets/wKey.png');
+        this.load.image('upKey', 'assets/upKey.png');
         this.load.spritesheet('phiast', 'assets/anPhiast.png', { frameWidth: 48, frameHeight: 64 });
         this.load.spritesheet('blob', 'assets/blob.png', { frameWidth: 16, frameHeight: 16 });
     }
@@ -26,6 +29,7 @@ export class Start extends Phaser.Scene {
         //this.debugArray = [];
         let debugString = "debug";
         this.debugText = this.add.text(5000, 0, debugString, { fontSize: '16px', fill: '#FFF' });
+        this.debugText.setVisible(false);
         //this.background = this.add.tileSprite(640, 360, 1280, 720, 'background');
 
         //const logo = this.add.image(640, 200, 'logo');
@@ -57,6 +61,18 @@ export class Start extends Phaser.Scene {
         this.pixelCam.setVisible(true);
         this.textCam.setVisible(true);
 
+        this.potIcon = this.add.sprite(0, 0, 'potIcon', 0);
+        this.potIcon.startingTile = {x:7, y:14.5};
+        this.potIcon.setPosition(this.TILESIZE * this.potIcon.startingTile.x, this.TILESIZE * this.potIcon.startingTile.y);
+
+        this.wKey = this.add.sprite(0, 0, 'wKey', 0);
+        this.wKey.startingTile = {x:2, y:13.5};
+        this.wKey.setPosition(this.TILESIZE * this.wKey.startingTile.x, this.TILESIZE * this.wKey.startingTile.y);
+
+        this.upKey = this.add.sprite(0, 0, 'upKey', 0);
+        this.upKey.startingTile = {x:2.6, y:13.5};
+        this.upKey.setPosition(this.TILESIZE * this.upKey.startingTile.x, this.TILESIZE * this.upKey.startingTile.y);
+
         this.anPhiast = this.add.sprite(0, 0, 'phiast', 0);
         this.anPhiast.startingTile = {x:5, y:11};
         this.anPhiast.setOrigin(0.5, 1);
@@ -81,6 +97,7 @@ export class Start extends Phaser.Scene {
         this.addKeyInputs();
         this.curTime = Date.now();
         this.events.on("resume", function() { sceneRef.handleUnpause() });
+        this.textBoxFadeOut = 0;
         this.coyoteTime = 0;
     }
 
@@ -334,6 +351,10 @@ export class Start extends Phaser.Scene {
         else {
             this.handleGravity(deltatime);
         }
+        
+        //move
+        this.anPhiast.y -= this.anPhiast.deltay;
+
         const boundsPlayer = {
             y:this.anPhiast.getCenter().y,
             x:this.anPhiast.x,
@@ -350,9 +371,11 @@ export class Start extends Phaser.Scene {
         let isCollideX = false;
         let curY = this.anPhiast.y;
         let curX = this.anPhiast.x;
+        this.wKey.setVisible(false);
+        this.upKey.setVisible(false);
 
         this.layerDebug.forEachTile(tile => {
-            if (tile.index == -1 || tile.index == 42) return;
+            if (tile.index == -1) return;
             //tile.tint = 0xff0000;
             const tBounds = {
                 t:tile.getTop(),
@@ -362,8 +385,8 @@ export class Start extends Phaser.Scene {
                 s:tile.height
             }
             const cPad = 0.01;
-            const dX = 2 * Math.abs(this.anPhiast.deltax) + cPad;
-            const dY = 2 * Math.abs(this.anPhiast.deltay);
+            //const dX = 2 * Math.abs(this.anPhiast.deltax) + cPad;
+            //const dY = 2 * Math.abs(this.anPhiast.deltay);
             const containsPhiastB = tBounds.t <= boundsPlayer.b && tBounds.b >= boundsPlayer.b;
             const containsPhiastT = tBounds.t <= boundsPlayer.t && tBounds.b >= boundsPlayer.t;
             const containsPhiastR = tBounds.l <= boundsPlayer.r && tBounds.r >= boundsPlayer.r;
@@ -376,6 +399,41 @@ export class Start extends Phaser.Scene {
             const containsPhiastY = (tBounds.t <= boundsPlayer.y && tBounds.b >= boundsPlayer.y) || containsPhiastB || containsPhiastT;
             const containsPhiastX = (tBounds.l <= boundsPlayer.x && tBounds.r >= boundsPlayer.x) || containsPhiastL || containsPhiastR;
 
+            if (tile.index == 42) {
+                if (containsPhiastX && containsPhiastY){
+                    this.wKey.setVisible(true);
+                    this.wKey.setPosition(tBounds.l, tBounds.t - tBounds.s);
+                    this.upKey.setVisible(true);
+                    this.upKey.setPosition(tBounds.r, tBounds.t - tBounds.s);
+
+                    if (this.buffer.includes("u")){
+                        let message = "";
+                        if (tBounds.r < 20){
+                            message = "Wow, you made that difficult jump... or you just climbed.";
+                        }
+                        else if (tBounds.r < 70){
+                            message = "WASD or Arrow Keys to move.";
+                        }
+                        else if (tBounds.r < 250){
+                            message = "Space to jump, hold it down to jump higher."
+                        }
+                        else {
+                            message = "congrats! Did you know you can climb walls?"
+                        }
+                        this.debugText.setVisible(true);
+                        this.debugText.text = message;
+                        this.debugText.setPadding(50,25,25,50);
+                        this.debugText.setFixedSize(1000, 100);
+                        this.debugText.setBackgroundColor("#082060a8");
+                        this.debugText.setFontSize("24px");
+                        //this.debugText.tintFill = true;
+                        this.debugText.setOrigin(0.5);
+                        this.textBoxFadeOut = 200;
+                    }
+                }
+                return;
+            }
+
             if (containsPhiastB && (containsMidX || containsPhiastX) && this.anPhiast.deltay <= 0) {
                 if (containsMidX) {
                     if (curY > tBounds.t){
@@ -386,7 +444,7 @@ export class Start extends Phaser.Scene {
                 if (containsPhiastX){
                     isCollideY = true;
                 }
-                this.debugText.text = "land";
+                //this.debugText.text = "land";
             }
             else if (containsMidX && containsPhiastT && this.anPhiast.deltay >= 0) {
                 isCollideUnderPlat = true;
@@ -435,13 +493,14 @@ export class Start extends Phaser.Scene {
             this.anPhiast.isGrounded = true;
             this.coyoteTime = 10;
         }
+
         else {
             this.anPhiast.isGrounded = false;
         }
 
-        //move
+        // For some reason splitting the x and y movement gives the effect I want
         this.anPhiast.x += this.anPhiast.deltax;
-        this.anPhiast.y -= this.anPhiast.deltay;
+
         // this.debugText.text = this.anPhiast.deltax; DEBUG
         if (this.anPhiast.y > 800) {
             this.respawnAnPhiast();
@@ -534,13 +593,17 @@ export class Start extends Phaser.Scene {
         const deltatime = (this.curTime - prevTime) * this.MS_TO_FPS; //should be around 1
 
         this.coyoteTime -= deltatime;
+        this.textBoxFadeOut -= deltatime;
         if (this.coyoteTime < 0){
             this.coyoteTime = 0;
             this.anPhiast.canJump = false;
+        }
+        if (this.textBoxFadeOut < 0){
+            this.textBoxFadeOut = 0;
+            this.debugText.setVisible(false);
         }
 
         this.movePlayer(deltatime);
         //this.background.tilePositionX += 2;
     }
-    
 }
