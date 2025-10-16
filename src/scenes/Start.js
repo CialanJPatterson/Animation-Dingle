@@ -19,6 +19,7 @@ export class Start extends Phaser.Scene {
         this.load.image('wKey', 'assets/wKey.png');
         this.load.image('upKey', 'assets/upKey.png');
         this.load.spritesheet('phiast', 'assets/anPhiast.png', { frameWidth: 48, frameHeight: 64 });
+        this.load.spritesheet('phiastPot', 'assets/anPhiastPot.png', { frameWidth: 24, frameHeight: 24 });
         this.load.spritesheet('blob', 'assets/blob.png', { frameWidth: 16, frameHeight: 16 });
     }
 
@@ -82,13 +83,21 @@ export class Start extends Phaser.Scene {
         this.anPhiast.setPosition(this.TILESIZE * this.anPhiast.startingTile.x, this.TILESIZE * this.anPhiast.startingTile.y);
         this.anPhiast.isGrounded = false;
         this.anPhiast.canJump = false;
+        this.anPhiast.currentPower = "none";
+        this.anPhiast.collectedPowers = [];
+        this.anPhiast.collectedPowers.push(this.anPhiast.currentPower);
         this.anPhiast.deltax = 0;
         this.anPhiast.deltay = 0;
+
+        this.anPhiastPot = this.add.sprite(0, 0, 'phiastPot', 0);
+        this.anPhiastPot.setOrigin(0.5, 1);
+        this.anPhiastPot.setVisible(false);
+        this.anPhiastPot.setPosition(this.anPhiast.x,this.anPhiast.y);
 
         this.pixelCam.startFollow(this.anPhiast);
 
         this.enemies = [];
-        this.populateEnemies(this.TILESIZE);
+        this.populateEnemies(this.TILESIZE, 40);
 
         //this.sample = this.sound.add("sample");
         //this.sample.play();
@@ -109,10 +118,10 @@ export class Start extends Phaser.Scene {
         if (num < 1) return;
         num = Math.trunc(num);
         for (let i = 0; i < num; i++) {
-            const tilePos = { x:Math.floor(Math.random()*40)/2 + 10, y:11.5 };
+            const tilePos = { x:Math.floor(Math.random()*40)/2 + 10, y:Math.floor(Math.random()*20) + 10 };
             const truePos = { x:tile*tilePos.x, y:tile*tilePos.y};
             const newEnemy = this.add.sprite(truePos.x, truePos.y, 'blob');
-            newEnemy.setScale(1.5);
+            newEnemy.setScale(0.875);
             newEnemy.setOrigin(0.5, 1);
             newEnemy.startingTile = tilePos;
             //this.physics.world.enable(newEnemy);
@@ -505,10 +514,92 @@ export class Start extends Phaser.Scene {
         if (this.anPhiast.y > 800) {
             this.respawnAnPhiast();
         }
+
+        const containsPotIconX = this.anPhiast.getTopLeft().x < this.potIcon.x && this.anPhiast.getBottomRight().x > this.potIcon.x;
+        const containsPotIconY = this.anPhiast.getTopLeft().y < this.potIcon.y && this.anPhiast.getBottomRight().y > this.potIcon.y;
+        if (containsPotIconX && containsPotIconY && !this.anPhiast.collectedPowers.includes("pot")){
+            this.anPhiast.collectedPowers.push("pot");
+            this.anPhiast.currentPower = "pot";
+            this.anPhiast.setVisible(false);
+            this.anPhiastPot.setVisible(true);
+        }
+        this.anPhiastPot.setPosition(this.anPhiast.x, this.anPhiast.y);
+        this.anPhiastPot.setFlip(this.anPhiast.flipX);
+    }
+
+    moveAllEnemies() {
+        this.enemies.forEach(enemy => {
+            const eBounds = {
+                y:enemy.getCenter().y,
+                x:enemy.x,
+                l:enemy.getLeftCenter().x,
+                r:enemy.getRightCenter().x,
+                t:enemy.getTopCenter().y,
+                b:enemy.getBottomCenter().y,
+                h:enemy.height * enemy.scale,
+                w:enemy.width * enemy.scale
+            }
+            let collideY = false;
+            let overhang = false;
+            let curX = enemy.x;
+            let curY = enemy.y;
+            this.layerDebug.forEachTile(tile => {
+                if (tile.index == -1 || tile.index == 42) return;
+                //tile.tint = 0xff0000;
+                const tBounds = {
+                    t:tile.getTop(),
+                    b:tile.getBottom(),
+                    l:tile.getLeft(),
+                    r:tile.getRight(),
+                    s:tile.height
+                }
+                const cPad = 0.01;
+                //const dX = 2 * Math.abs(enemy.deltax) + cPad;
+                //const dY = 2 * Math.abs(enemy.deltay);
+                const containsEnemyB = tBounds.t <= eBounds.b && tBounds.b >= eBounds.b;
+                const aboveTile = tBounds.t >= eBounds.b;
+                const containsEnemyT = tBounds.t <= eBounds.t && tBounds.b >= eBounds.t;
+                const containsEnemyR = tBounds.l <= eBounds.r && tBounds.r >= eBounds.r;
+                const containsEnemyL = tBounds.l <= eBounds.l && tBounds.r >= eBounds.l;
+                const containsMidX = (tBounds.l <= eBounds.x - (eBounds.w * (1 / 8)) 
+                    && tBounds.r >= eBounds.x - (eBounds.w * (1 / 8)))
+                    || (tBounds.l <= eBounds.x + (eBounds.w * (1 / 8)) 
+                    && tBounds.r >= eBounds.x + (eBounds.w * (1 / 8)))
+                    || (tBounds.l <= eBounds.x && tBounds.r >= eBounds.x);
+                const containsEnemyY = (tBounds.t <= eBounds.y && tBounds.b >= eBounds.y) || containsEnemyB || containsEnemyT;
+                const containsEnemyCenterX = tBounds.l <= eBounds.x && tBounds.r >= eBounds.x;
+                const containsEnemyX = containsEnemyCenterX || containsEnemyL || containsEnemyR;
+                const aboveLeft = containsEnemyL && !containsEnemyCenterX && (containsEnemyB || tBounds.t <= eBounds.b + eBounds.h / 3 && tBounds.b >= eBounds.b + eBounds.h / 3);
+                const aboveRight = containsEnemyR && !containsEnemyCenterX && (containsEnemyB || tBounds.t <= eBounds.b + eBounds.h / 3 && tBounds.b >= eBounds.b + eBounds.h / 3);
+
+                if (aboveTile && containsEnemyX && !collideY) {
+                    curY = tBounds.t - cPad;
+                    curX = tile.getCenterX();
+                    enemy.y = curY;
+                    collideY = true;
+                    //this.debugText.text = "land";
+                }
+                else if (containsEnemyY && containsEnemyX && !collideY) {
+                    curY = tBounds.t - cPad;
+                    enemy.y = curY;
+                    collideY = true;
+                }
+                if (aboveLeft || aboveRight){
+                    enemy.curX = tile.getCenterX();
+                }
+            }, this);
+            if (!collideY){ curY = 800 }
+            enemy.setPosition(curX, curY);
+        }, this);
     }
 
     respawnAnPhiast() {
         this.anPhiast.setPosition(this.TILESIZE * this.anPhiast.startingTile.x, this.TILESIZE * this.anPhiast.startingTile.y);
+        this.anPhiast.collectedPowers = [];
+        this.anPhiast.currentPower = "none";
+        this.anPhiast.collectedPowers.push(this.anPhiast.currentPower);
+        this.anPhiast.setVisible(true);
+        this.anPhiastPot.setVisible(false);
         this.anPhiast.isGrounded = false;
         this.anPhiast.canJump = false;
         this.anPhiast.deltax = 0;
@@ -604,6 +695,7 @@ export class Start extends Phaser.Scene {
         }
 
         this.movePlayer(deltatime);
+        this.moveAllEnemies();
         //this.background.tilePositionX += 2;
     }
 }
