@@ -138,6 +138,7 @@ export class Start extends Phaser.Scene {
             newEnemy.takeDamage = function() {
                 this.health -= 2;
                 if (this.health <= 0){
+                    this.setPosition(1000, 850);
                     this.destroy(true);
                 }
             }
