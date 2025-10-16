@@ -18,6 +18,7 @@ export class Start extends Phaser.Scene {
         this.load.image('potIcon', 'assets/pot-icon.png');
         this.load.image('wKey', 'assets/wKey.png');
         this.load.image('upKey', 'assets/upKey.png');
+        this.load.spritesheet('healthbar', 'assets/healthbar.png', { frameWidth: 64, frameHeight:12 });
         this.load.spritesheet('phiast', 'assets/anPhiast.png', { frameWidth: 48, frameHeight: 64 });
         this.load.spritesheet('phiastPot', 'assets/anPhiastPot.png', { frameWidth: 24, frameHeight: 24 });
         this.load.spritesheet('blob', 'assets/blob.png', { frameWidth: 16, frameHeight: 16 });
@@ -31,6 +32,10 @@ export class Start extends Phaser.Scene {
         let debugString = "debug";
         this.debugText = this.add.text(5000, 0, debugString, { fontSize: '16px', fill: '#FFF' });
         this.debugText.setVisible(false);
+        this.healthbar = this.add.sprite(5000, 600, 'healthbar');
+        this.healthbar.setScale(5);
+        this.healthbar.setOrigin(1, 0.5);
+        this.healthbar.setCrop(0, 0, 64, 12);
         //this.background = this.add.tileSprite(640, 360, 1280, 720, 'background');
 
         //const logo = this.add.image(640, 200, 'logo');
@@ -56,11 +61,15 @@ export class Start extends Phaser.Scene {
         this.textCam = this.cameras.add(0, 620, 1280, 100, false, "debug");
         this.textCam.startFollow(this.debugText);
 
+        this.healthCam = this.cameras.add(0, 20, 640, 60, false, "health");
+        this.healthCam.startFollow(this.healthbar);
+
         for (let i = 0; i < this.cameras.cameras.length; i++){
             this.cameras.cameras[i].setVisible(false);
         }
         this.pixelCam.setVisible(true);
         this.textCam.setVisible(true);
+        this.healthCam.setVisible(true);
 
         this.potIcon = this.add.sprite(0, 0, 'potIcon', 0);
         this.potIcon.startingTile = {x:7, y:14.5};
@@ -88,6 +97,7 @@ export class Start extends Phaser.Scene {
         this.anPhiast.collectedPowers.push(this.anPhiast.currentPower);
         this.anPhiast.deltax = 0;
         this.anPhiast.deltay = 0;
+        this.anPhiast.health = 64;
 
         this.anPhiastPot = this.add.sprite(0, 0, 'phiastPot', 0);
         this.anPhiastPot.setOrigin(0.5, 1);
@@ -124,6 +134,13 @@ export class Start extends Phaser.Scene {
             newEnemy.setScale(0.875);
             newEnemy.setOrigin(0.5, 1);
             newEnemy.startingTile = tilePos;
+            newEnemy.health = 2;
+            newEnemy.takeDamage = function() {
+                this.health -= 2;
+                if (this.health <= 0){
+                    this.destroy(true);
+                }
+            }
             //this.physics.world.enable(newEnemy);
             this.enemies.push(newEnemy);
             //this.debugText.text = tilePos.x;
@@ -326,7 +343,24 @@ export class Start extends Phaser.Scene {
      */
     movePlayer(deltatime){
         let dX = this.anPhiast.deltax; // initialise local variable to avoid corrupting class member
-        dX *= 0.95; // decelerate
+        if (this.anPhiast.currentPower == "pot"){
+            dX *= 0.98;
+            if (Math.abs(dX) >= 3.5){
+                this.anPhiastPot.isCharging = true;
+                this.anPhiastPot.setTint(0xff4000);
+                this.anPhiastPot.cooldown = 30;
+            }
+            else {
+                this.anPhiastPot.cooldown -= deltatime;
+                if (this.anPhiastPot.cooldown <= 0){
+                    this.anPhiastPot.isCharging = false;
+                    this.anPhiastPot.clearTint();
+                }
+            }
+        }
+        else {
+            dX *= 0.95; // deccelerate
+        }
         if (dX >= 0.001) {
             dX -= 0.001;
         }
@@ -382,7 +416,35 @@ export class Start extends Phaser.Scene {
         let curX = this.anPhiast.x;
         this.wKey.setVisible(false);
         this.upKey.setVisible(false);
+        const playerColPoints = [];
+        playerColPoints.push(this.anPhiast.getTopLeft());
+        playerColPoints.push(this.anPhiast.getTopCenter());
+        playerColPoints.push(this.anPhiast.getTopRight());
+        playerColPoints.push(this.anPhiast.getLeftCenter());
+        playerColPoints.push(this.anPhiast.getCenter());
+        playerColPoints.push(this.anPhiast.getRightCenter());
+        playerColPoints.push(this.anPhiast.getBottomLeft());
+        playerColPoints.push(this.anPhiast.getBottomCenter());
+        playerColPoints.push(this.anPhiast.getBottomRight());
 
+        this.enemies.forEach(enemy => {
+            let playerDamage = false;
+            for (let i = 0; i < playerColPoints.length; i++) {
+                if (enemy.getLeftCenter().x < playerColPoints[i].x && enemy.getRightCenter().x > playerColPoints[i].x
+                && enemy.getTopCenter().y < playerColPoints[i].y && enemy.getBottomCenter().y > playerColPoints[i].y) {
+                    if (this.anPhiastPot.isCharging && this.anPhiast.currentPower == "pot"){
+                        enemy.takeDamage();
+                    }
+                    else {
+                        playerDamage = true;
+                    }
+                }
+            }
+            if (playerDamage) {
+                this.damagePhiast();
+            }
+        })
+        
         this.layerDebug.forEachTile(tile => {
             if (tile.index == -1) return;
             //tile.tint = 0xff0000;
@@ -520,11 +582,27 @@ export class Start extends Phaser.Scene {
         if (containsPotIconX && containsPotIconY && !this.anPhiast.collectedPowers.includes("pot")){
             this.anPhiast.collectedPowers.push("pot");
             this.anPhiast.currentPower = "pot";
+            this.healthbar.setScale(10, 5);
+            this.healthbar.setOrigin(0.5, 0.5);
             this.anPhiast.setVisible(false);
             this.anPhiastPot.setVisible(true);
         }
         this.anPhiastPot.setPosition(this.anPhiast.x, this.anPhiast.y);
         this.anPhiastPot.setFlip(this.anPhiast.flipX);
+    }
+
+    damagePhiast() {
+        if (this.anPhiast.currentPower == "pot"){
+            this.anPhiast.health -= 1;
+        }
+        else {
+            this.anPhiast.health -= 2;
+        }
+
+        if (this.anPhiast.health < 0) {
+            this.respawnAnPhiast();
+        }
+        this.healthbar.setCrop(0, 0, this.anPhiast.health, 12);
     }
 
     moveAllEnemies() {
@@ -604,6 +682,10 @@ export class Start extends Phaser.Scene {
         this.anPhiast.canJump = false;
         this.anPhiast.deltax = 0;
         this.anPhiast.deltay = 0;
+        this.anPhiast.health = 64;
+        this.healthbar.setScale(5, 5);
+        this.healthbar.setOrigin(1, 0.5);
+        this.healthbar.setCrop(0, 0, 64, 12);
     }
 
     /** Adds inputs to the buffer 
