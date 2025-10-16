@@ -10,21 +10,9 @@ export class Start extends Phaser.Scene {
     controls;
 
     preload() {
-        //this.physics.enableUpdate();
-        /* OLD: Phaser doesn't like enums in js ¯\_(ツ)_/¯
-        this.DIRECTION = {
-            up: 1,
-            down: 2,
-            right: 3,
-            left: 4
-        }
-        */
         this.FPS = 60;
         this.MS_TO_FPS = this.FPS * .001;
         
-        //this.load.image('phiast', 'assets/space.png');
-        //this.load.image('logo', 'assets/phaser.png');
-        //this.load.atlas('grassTiles', 'assets/tilesets/grassTiles.png', 'assets/tilesets/grassTiles.json');
         this.load.tilemapTiledJSON('levelDebug', 'assets/tilemaps/levelDebug.json');
         this.load.image('grassTiles', 'assets/tilesets/grassTiles.png');
         this.load.spritesheet('phiast', 'assets/anPhiast.png', { frameWidth: 48, frameHeight: 64 });
@@ -44,28 +32,6 @@ export class Start extends Phaser.Scene {
         const mapDebug = this.make.tilemap({key:'levelDebug'});
         const tilesDebug = mapDebug.addTilesetImage('grassTiles');
         this.layerDebug = mapDebug.createLayer(0, tilesDebug, 0, 260);
-        //const tileBodies = this.physics.add.existing(this.layerDebug.layer.bodies);
-        //this.layerDebug.setTintFill(0xff0000);
-        
-        //this.platforms = [];
-        /* for (let i = 0; i < this.layerDebug.layer.width; i++){
-            for (let j = 0; j < this.layerDebug.layer.height; j++){
-                const testTile = this.layerDebug.getTileAt(i, j, true).index;
-                if (testTile != 41 && testTile != -1){
-                    const collisionRect = this.physics.add.body(i * 16 + 8, j * 16 + 188, 16, 16);
-                    collisionRect.setImmovable(true);
-                    collisionRect.debugBodyColor = 0xff0000;
-                    collisionRect.debugShowBody = true;
-                    collisionRect.checkCollision.down = true;
-                    collisionRect.checkCollision.left = true;
-                    collisionRect.checkCollision.up = true;
-                    collisionRect.checkCollision.right = true;
-                    collisionRect.willCollideWith(1);
-                    this.platforms.push(collisionRect);
-                }
-            }
-        } */
-
         this.layerDebug.setCollisionFromCollisionGroup();
 
         this.shapeGraphics = this.add.graphics();
@@ -81,7 +47,6 @@ export class Start extends Phaser.Scene {
         this.pixelCam.zoom = 4;
         this.pixelCam.setBounds(this.layerDebug.getTopLeft().x, 0, this.layerDebug.getBottomRight().x - this.layerDebug.getTopLeft().x, this.layerDebug.getBottomRight().y, true);
         this.pixelCam.useBounds = true;
-        //this.pixelCam.clampY(360);
 
         this.textCam = this.cameras.add(0, 620, 1280, 100, false, "debug");
         this.textCam.startFollow(this.debugText);
@@ -103,19 +68,8 @@ export class Start extends Phaser.Scene {
         this.anPhiast.canJump = false;
         this.anPhiast.deltax = 0;
         this.anPhiast.deltay = 0;
-        // this.anPhiast.setBounce(0);
-        // this.anPhiast.setFixedRotation();
-        // this.anPhiast.setIgnoreGravity(true);
-        //this.anPhiast.isColliding = false;
-        //this.anPhiast.collideY = 0;
-        //this.anPhiast.setOnCollide(function () {this.isGrounded = true;})
 
         this.pixelCam.startFollow(this.anPhiast);
-        /*this.anPhiast.addCollidesWith(1);
-        this.anPhiast.body.checkCollision.down = true;
-        this.anPhiast.body.checkCollision.left = true;
-        this.anPhiast.body.checkCollision.up = true;
-        this.anPhiast.body.checkCollision.right = true;*/
 
         this.enemies = [];
         this.populateEnemies(this.TILESIZE);
@@ -123,85 +77,11 @@ export class Start extends Phaser.Scene {
         //this.sample = this.sound.add("sample");
         //this.sample.play();
         
-        //anPhiast.anims.create({
-            //key: 'idle',
-            //frames: this.anims.generateFrameNumbers('anPhiast', { start: 0, end: 2 }),
-            //frameRate: 15,
-            //repeat: -1
-        //});
-        //anPhiast.play('idle');
-        /*
-        this.tweens.add({
-            targets: this.anPhiast,
-            y: '-=2',
-            x: '+=500',
-            duration: 5000,
-            flipX: true,
-            ease: 'Sine.inOut',
-            yoyo: true,    
-            loop: -1
-        });
-        */
-
         this.buffer = [];
         this.addKeyInputs();
-
-        // this.matter.world.on('collisionstart', function (event)
-        // {
-        //     for (let i = 0; i < event.pairs.length; i++)
-        //     {
-        //         // The tile bodies in this example are a mixture of compound bodies and simple rectangle
-        //         // bodies. The "label" property was set on the parent body, so we will first make sure
-        //         // that we have the top level body instead of a part of a larger compound body.
-        //         const bodyA = this.getRootBody(event.pairs[i].bodyA);
-        //         const bodyB = this.getRootBody(event.pairs[i].bodyB);
-
-        //         if ((bodyA.label === "player" && bodyB.label === "collisionTile") ||
-        //             (bodyB.label === "player" && bodyA.label === "collisionTile"))
-        //         {
-        //             const playerBody = bodyA.label === "player" ? bodyA : bodyB;
-        //             const tileBody = bodyA.label === "collisionTile" ? bodyA : bodyB;
-        //             const player = playerBody.gameObject;
-        //             const colTile = tileBody.gameObject;
-
-        //             if (player.isColliding && colTile.getTop() <= player.collideY) {
-        //                 continue;
-        //             }
-                    
-        //             this.debugText.text = "collided";
-        //             player.isGrounded = true;
-        //             player.collideY = colTile.getTop();
-
-        //             //// A body may collide with multiple other bodies in a step, so we'll use a flag to
-        //             // if (player.isBeingDestroyed)
-        //             // {
-        //             //     continue;
-        //             // }
-        //             // player.isBeingDestroyed = true;
-
-        //             // this.matter.world.remove(playerBody);
-
-        //             // this.tweens.add({
-        //             //     targets: player,
-        //             //     alpha: { value: 0, duration: 150, ease: 'Power1' },
-        //             //     onComplete: (player => { player.destroy(); }).bind(this, player)
-        //             // });
-        //         }
-        //     }
-        // }, this);
         this.curTime = Date.now();
         this.events.on("resume", function() { sceneRef.handleUnpause() });
         this.coyoteTime = 0;
-    }
-
-    getRootBody (body)
-    {
-        if (body.parent === body) { return body; }
-        while (body.parent !== body)
-        {
-            body = body.parent;
-        }
-        return body;
     }
 
     /** Adds enemies to the map equal to num
@@ -351,31 +231,6 @@ export class Start extends Phaser.Scene {
     handleUnpause() {
         this.curTime = Date.now();
         this.buffer = this.registry.get("buffer");
-        
-        // OLD
-        // const arr = this.buffer;
-        // if (arr.includes("u") && up.isUp) {
-        //     spliceBadInput("u");
-        // }
-        // if (arr.includes("d") && this.keyObjects.down.isUp) {
-        //     spliceBadInput("d");
-        // }
-        // if (arr.includes("r") && this.keyObjects.right.isUp) {
-        //     spliceBadInput("r");
-        // }
-        // if (arr.includes("l") && this.keyObjects.left.isUp) {
-        //     spliceBadInput("l");
-        // }
-        // //this.debugText.text = this.buffer.toLocaleString();
-
-        // function spliceBadInput(input){
-        //     do {
-        //         //const l = arr.length
-        //         const i = arr.indexOf(input);
-        //         arr.splice(i, 1);
-        //         //if (l == arr.length) break;
-        //     } while (arr.includes(input));
-        // } 
     }
 
     forcePause() {
@@ -499,8 +354,6 @@ export class Start extends Phaser.Scene {
         this.layerDebug.forEachTile(tile => {
             if (tile.index == -1 || tile.index == 42) return;
             //tile.tint = 0xff0000;
-            //tile.getTileData();
-            //const t = tile.getCollisionGroup()
             const tBounds = {
                 t:tile.getTop(),
                 b:tile.getBottom(),
@@ -585,19 +438,6 @@ export class Start extends Phaser.Scene {
         else {
             this.anPhiast.isGrounded = false;
         }
-        
-        // OLD
-        //this.layerDebug.forEachTile(tile => { 
-            //if (this.matter.containsPoint(this.matter.getMatterBodies(this.layerDebug), this.anPhiast.getWorldPoint().x, this.anPhiast.getWorldPoint().y)){
-                //collisionArray.push(tile);
-            //}
-            //});
-        //const collision = this.matter.containsPoint(collisionArray, this.anPhiast.getWorldPoint().x, this.anPhiast.getWorldPoint().x);
-        //if (this.anPhiast.deltay <= 0 && collision) {
-            //this.anPhiast.isGrounded = true;
-            //this.anPhiast.deltay = 0;
-            //this.debugText.text = "ground";
-        //}
 
         //move
         this.anPhiast.x += this.anPhiast.deltax;
@@ -698,23 +538,6 @@ export class Start extends Phaser.Scene {
             this.coyoteTime = 0;
             this.anPhiast.canJump = false;
         }
-        
-        /* DEBUG
-        const dt_sec = 1000 / (this.curTime - prevTime);
-
-        this.debugArray.push(dt_sec);
-        
-        if (this.debugArray.length % 60 == 0){
-            let sum = 0;
-            for (let i = 0; i < this.debugArray.length; i++){
-                sum += this.debugArray[i];
-            }
-            let avg = sum / this.debugArray.length;
-            avg = Math.trunc(avg * 100);
-            this.debugArray = [];
-            this.debugText.text = avg / 100;
-        }
-        */
 
         this.movePlayer(deltatime);
         //this.background.tilePositionX += 2;
