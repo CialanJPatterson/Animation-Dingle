@@ -134,6 +134,7 @@ export class Start extends Phaser.Scene {
 
         this.whip = this.add.rectangle(this.anPhiast.getRightCenter().x, this.anPhiast.getRightCenter().y, this.anPhiast.width * this.anPhiast.scaleX, this.anPhiast.height * this.anPhiast.scaleY * 1.5, 0x00ffa0);
         this.whip.setAlpha(0.5);
+        this.whip.setVisible(false);
         this.pixelCam.startFollow(this.anPhiast);
 
         this.enemies = [];
