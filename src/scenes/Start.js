@@ -16,23 +16,30 @@ export class Start extends Phaser.Scene {
         this.load.tilemapTiledJSON('levelDebug', 'assets/tilemaps/levelDebug.json');
         this.load.image('grassTiles', 'assets/tilesets/grassTiles.png');
         this.load.image('potIcon', 'assets/pot-icon.png');
+        this.load.image('cowboyIcon', 'assets/hat-icon.png');
         this.load.image('wKey', 'assets/wKey.png');
         this.load.image('upKey', 'assets/upKey.png');
         this.load.spritesheet('healthbar', 'assets/healthbar.png', { frameWidth: 64, frameHeight:12 });
         this.load.spritesheet('phiast', 'assets/anPhiast.png', { frameWidth: 48, frameHeight: 64 });
         this.load.spritesheet('phiastPot', 'assets/anPhiastPot.png', { frameWidth: 24, frameHeight: 24 });
+        this.load.spritesheet('phiastCowboy', 'assets/anPhiastCowboy.png', { frameWidth: 24, frameHeight: 24 });
         this.load.spritesheet('blob', 'assets/blob.png', { frameWidth: 16, frameHeight: 16 });
     }
 
     create() {
-        const sceneRef = this;
         this.TILESIZE = 24;
         /**@type {Number[]} */
         //this.debugArray = [];
         let debugString = "debug";
-        this.debugText = this.add.text(5000, 0, debugString, { fontSize: '16px', fill: '#FFF' });
-        this.debugText.setVisible(false);
-        this.healthbar = this.add.sprite(5000, 600, 'healthbar');
+        this.powerupCycleText = this.add.text(5000, 1000, debugString, { fontSize: '16px', fill: '#FFF' });
+        this.dialogueText = this.add.text(5000, 1200, "", { fontSize: '16px', fill: '#FFF' });
+        this.dialogueText.setVisible(false);
+        this.dialogueArr = [];
+        this.pressEnterToSkip = this.add.text(5000, 1400, "press enter to skip", { fontSize: '12px', fill: '#FFF' });
+        this.pressEnterToSkip.setOrigin(1, 1);
+        this.pressEnterToSkip.setVisible(false);
+
+        this.healthbar = this.add.sprite(5000, 1600, 'healthbar');
         this.healthbar.setScale(5);
         this.healthbar.setOrigin(1, 0.5);
         this.healthbar.setCrop(0, 0, 64, 12);
@@ -58,22 +65,33 @@ export class Start extends Phaser.Scene {
         this.pixelCam.setBounds(this.layerDebug.getTopLeft().x, 0, this.layerDebug.getBottomRight().x - this.layerDebug.getTopLeft().x, this.layerDebug.getBottomRight().y, true);
         this.pixelCam.useBounds = true;
 
-        this.textCam = this.cameras.add(0, 620, 1280, 100, false, "debug");
-        this.textCam.startFollow(this.debugText);
-
         this.healthCam = this.cameras.add(0, 20, 640, 60, false, "health");
         this.healthCam.startFollow(this.healthbar);
+
+        this.textCam = this.cameras.add(640, 20, 620, 100, false, "errorMessage");
+        this.textCam.startFollow(this.powerupCycleText);
+        this.textCam.setOrigin(1, 0);
+        this.powerupCycleText.setOrigin(1, 0);
+        this.powerupCycleText.setPosition(this.textCam.x, this.textCam.y);
+
+        this.textboxCam = this.cameras.add(0, 620, 1280, 100, false, "dialogue");
+        this.textboxCam.startFollow(this.dialogueText);
 
         for (let i = 0; i < this.cameras.cameras.length; i++){
             this.cameras.cameras[i].setVisible(false);
         }
         this.pixelCam.setVisible(true);
         this.textCam.setVisible(true);
+        this.textboxCam.setVisible(true);
         this.healthCam.setVisible(true);
 
         this.potIcon = this.add.sprite(0, 0, 'potIcon', 0);
         this.potIcon.startingTile = {x:7, y:14.5};
         this.potIcon.setPosition(this.TILESIZE * this.potIcon.startingTile.x, this.TILESIZE * this.potIcon.startingTile.y);
+
+        this.cowboyIcon = this.add.sprite(0, 0, 'cowboyIcon', 0);
+        this.cowboyIcon.startingTile = {x:15, y:9.5};
+        this.cowboyIcon.setPosition(this.TILESIZE * this.cowboyIcon.startingTile.x, this.TILESIZE * this.cowboyIcon.startingTile.y);
 
         this.wKey = this.add.sprite(0, 0, 'wKey', 0);
         this.wKey.startingTile = {x:2, y:13.5};
@@ -95,6 +113,7 @@ export class Start extends Phaser.Scene {
         this.anPhiast.currentPower = "none";
         this.anPhiast.collectedPowers = [];
         this.anPhiast.collectedPowers.push(this.anPhiast.currentPower);
+        this.setPowerupText();
         this.anPhiast.deltax = 0;
         this.anPhiast.deltay = 0;
         this.anPhiast.health = 64;
@@ -103,7 +122,18 @@ export class Start extends Phaser.Scene {
         this.anPhiastPot.setOrigin(0.5, 1);
         this.anPhiastPot.setVisible(false);
         this.anPhiastPot.setPosition(this.anPhiast.x,this.anPhiast.y);
+        this.anPhiastPot.isCharging = false;
+        this.anPhiastPot.needsTutorial = true;
 
+        this.anPhiastCowboy = this.add.sprite(0, 0, 'phiastCowboy', 0);
+        this.anPhiastCowboy.setOrigin(0.5, 1);
+        this.anPhiastCowboy.setVisible(false);
+        this.anPhiastCowboy.setPosition(this.anPhiast.x,this.anPhiast.y);
+        this.anPhiastCowboy.isAttacking = false;
+        this.anPhiastCowboy.needsTutorial = true;
+
+        this.whip = this.add.rectangle(this.anPhiast.getRightCenter().x, this.anPhiast.getRightCenter().y, this.anPhiast.width * this.anPhiast.scaleX, this.anPhiast.height * this.anPhiast.scaleY * 1.5, 0x00ffa0);
+        this.whip.setAlpha(0.5);
         this.pixelCam.startFollow(this.anPhiast);
 
         this.enemies = [];
@@ -115,9 +145,11 @@ export class Start extends Phaser.Scene {
         this.buffer = [];
         this.addKeyInputs();
         this.curTime = Date.now();
-        this.events.on("resume", function() { sceneRef.handleUnpause() });
-        this.textBoxFadeOut = 0;
+        this.events.on("resume", function() {this.handleUnpause()}, this);
+        this.textboxFadeoutTime = 0;
+        this.textboxFadeoutControl = true;
         this.coyoteTime = 0;
+        this.powerupCyclingTutorial = true;
     }
 
     /** Adds enemies to the map equal to num
@@ -144,8 +176,6 @@ export class Start extends Phaser.Scene {
             }
             //this.physics.world.enable(newEnemy);
             this.enemies.push(newEnemy);
-            //this.debugText.text = tilePos.x;
-            //newEnemy.destroy();
         }
     }
 
@@ -208,7 +238,6 @@ export class Start extends Phaser.Scene {
 
 
     addKeyInputs() {
-        const sceneRef = this;
         this.keyObjects = class {};
         //Add Keys to KeyObject class
         {
@@ -229,47 +258,108 @@ export class Start extends Phaser.Scene {
             this.keyObjects.cycleleft = this.input.keyboard.addKey("Q");
             //Pause
             this.keyObjects.pause = this.input.keyboard.addKey("ESC");
+            this.keyObjects.skip = this.input.keyboard.addKey("Enter");
         }
 
         //add inputs to the buffer when pressed 
         {
             //WASD Movement
-            this.keyObjects.right.on('down', function() {sceneRef.bufferInput("r")});
-            this.keyObjects.left.on('down', function() {sceneRef.bufferInput("l")});
-            this.keyObjects.up.on('down', function() {sceneRef.bufferInput("u")});
-            this.keyObjects.down.on('down', function() {sceneRef.bufferInput("d")});
+            this.keyObjects.right.on('down', function() {this.bufferInput("r")}, this);
+            this.keyObjects.left.on('down', function() {this.bufferInput("l")}, this);
+            this.keyObjects.up.on('down', function() {this.bufferInput("u")}, this);
+            this.keyObjects.down.on('down', function() {this.bufferInput("d")}, this);
             //Arrow Key Movement
-            this.keyObjects.rightArrow.on('down', function() {sceneRef.bufferInput("r")});
-            this.keyObjects.leftArrow.on('down', function() {sceneRef.bufferInput("l")});
-            this.keyObjects.upArrow.on('down', function() {sceneRef.bufferInput("u")});
-            this.keyObjects.downArrow.on('down', function() {sceneRef.bufferInput("d")});
+            this.keyObjects.rightArrow.on('down', function() {this.bufferInput("r")}, this);
+            this.keyObjects.leftArrow.on('down', function() {this.bufferInput("l")}, this);
+            this.keyObjects.upArrow.on('down', function() {this.bufferInput("u")}, this);
+            this.keyObjects.downArrow.on('down', function() {this.bufferInput("d")}, this);
             //Other Actions
-            this.keyObjects.jump.on('down', function() {sceneRef.bufferInput("j")});
-            this.keyObjects.ability.on('down', function() {sceneRef.bufferInput("a")});
-            this.keyObjects.cycleright.on('down', function() {sceneRef.bufferInput(">")});
-            this.keyObjects.cycleleft.on('down', function() {sceneRef.bufferInput("<")});
+            this.keyObjects.jump.on('down', function() {this.bufferInput("j")}, this);
+            this.keyObjects.ability.on('down', function() {this.bufferInput("a")}, this);
+            this.keyObjects.cycleright.on('down', function() {this.bufferInput(">"); this.cyclePower(true)}, this);
+            this.keyObjects.cycleleft.on('down', function() {this.bufferInput("<"); this.cyclePower(false)}, this);
+            //Skip Dialogue
+            this.keyObjects.skip.on('down', function() {this.attemptNextDialogue()}, this);
         }
 
         //remove inputs from the buffer when unpressed
         {
             //WASD Movement
-            this.keyObjects.right.on('up', function() {sceneRef.debufferInput("r")});
-            this.keyObjects.left.on('up', function() {sceneRef.debufferInput("l")});
-            this.keyObjects.up.on('up', function() {sceneRef.debufferInput("u")});
-            this.keyObjects.down.on('up', function() {sceneRef.debufferInput("d")});
+            this.keyObjects.right.on('up', function() {this.debufferInput("r")}, this);
+            this.keyObjects.left.on('up', function() {this.debufferInput("l")}, this);
+            this.keyObjects.up.on('up', function() {this.debufferInput("u")}, this);
+            this.keyObjects.down.on('up', function() {this.debufferInput("d")}, this);
             //Arrow Key Movement
-            this.keyObjects.rightArrow.on('up', function() {sceneRef.debufferInput("r")});
-            this.keyObjects.leftArrow.on('up', function() {sceneRef.debufferInput("l")});
-            this.keyObjects.upArrow.on('up', function() {sceneRef.debufferInput("u")});
-            this.keyObjects.downArrow.on('up', function() {sceneRef.debufferInput("d")});
+            this.keyObjects.rightArrow.on('up', function() {this.debufferInput("r")}, this);
+            this.keyObjects.leftArrow.on('up', function() {this.debufferInput("l")}, this);
+            this.keyObjects.upArrow.on('up', function() {this.debufferInput("u")}, this);
+            this.keyObjects.downArrow.on('up', function() {this.debufferInput("d")}, this);
             //Other Actions
-            this.keyObjects.jump.on('up', function() {sceneRef.debufferInput("j")});
-            this.keyObjects.ability.on('up', function() {sceneRef.debufferInput("a")});
-            this.keyObjects.cycleright.on('up', function() {sceneRef.debufferInput(">")});
-            this.keyObjects.cycleleft.on('up', function() {sceneRef.debufferInput("<")});
+            this.keyObjects.jump.on('up', function() {this.debufferInput("j")}, this);
+            this.keyObjects.ability.on('up', function() {this.debufferInput("a")}, this);
+            this.keyObjects.cycleright.on('up', function() {this.debufferInput(">")}, this);
+            this.keyObjects.cycleleft.on('up', function() {this.debufferInput("<")}, this);
             //Pause
-            this.keyObjects.pause.on('up', function() {sceneRef.forcePause()});
+            this.keyObjects.pause.on('up', function() {this.forcePause()}, this);
         }
+    }
+
+    //**@param {boolean} forwards default value true. Controls the direction that you iterate through the array */
+    cyclePower(forwards = true) {
+        const arr = this.anPhiast.collectedPowers
+        const index = arr.indexOf(this.anPhiast.currentPower);
+        let newIndex = -1;
+
+        if (index == -1) return;
+
+        if (forwards){
+            newIndex = index + 1;
+            if (newIndex >= arr.length) {
+                newIndex = 0;
+            }
+        }
+        else {
+            newIndex = index - 1;
+            if (newIndex < 0) {
+                newIndex = arr.length - 1;
+            }
+        }
+        this.anPhiast.currentPower = arr[newIndex];
+        this.setPowerupText();
+
+        if (this.anPhiast.currentPower == "none"){
+            this.anPhiast.setVisible(true);
+        }
+        else {
+            this.anPhiast.setVisible(false);
+        }
+
+        if (this.anPhiast.currentPower == "pot"){
+            this.anPhiastPot.setVisible(true);
+            this.healthbar.setScale(10, 5);
+            this.healthbar.setOrigin(0.5, 0.5);
+        }
+        else {
+            this.anPhiastPot.setVisible(false);
+            this.healthbar.setScale(5, 5);
+            this.healthbar.setOrigin(1, 0.5);
+        }
+
+        if (this.anPhiast.currentPower == "cowboy"){
+            this.anPhiastCowboy.setVisible(true);
+        }
+        else {
+            this.anPhiastCowboy.setVisible(false);
+        }
+    }
+
+    setPowerupText() {
+        const index = this.anPhiast.collectedPowers.indexOf(this.anPhiast.currentPower);
+        const length = this.anPhiast.collectedPowers.length;
+        const prev = this.anPhiast.collectedPowers[(index + length - 1) % length];
+        const next = this.anPhiast.collectedPowers[(index + 1) % length];
+        this.powerupCycleText.text = prev + " <- Q | current powerup: " + this.anPhiast.currentPower + " | E -> " + next;
+        // this.powerupCycleText.text = prev + " | >" + this.anPhiast.currentPower + " | " + next;
     }
 
     handleUnpause() {
@@ -317,8 +407,10 @@ export class Start extends Phaser.Scene {
      * @param {number} dt deltatime
      */
     jump(dt) {
-        this.anPhiast.canJump = false;
-        this.anPhiast.deltay = 5;
+        if (this.anPhiast.deltay <= 1){
+            this.anPhiast.canJump = false;
+            this.anPhiast.deltay = 3;
+        }
     }
 
     /** OLD
@@ -326,40 +418,44 @@ export class Start extends Phaser.Scene {
      */
     handleGravity(dt) {
         this.gravity = 0.2;
-        this.anPhiast.airResistance = 1.05;
+        this.anPhiast.airResistance = 1.1;
         let dY = this.anPhiast.deltay;
         if (this.buffer.includes("j") && dY > 0){
             dY -= this.gravity * .25 * dt;
         }
         else {
-            dY -= this.gravity * 2 * dt;
+            dY -= this.gravity * 3 * dt;
         }
         dY *= 1 / this.anPhiast.airResistance;
         this.anPhiast.deltay = dY;
-        //this.debugText.text = this.anPhiast.deltay;
     }
 
     /** Handles accel/decel and eventual movement
      * @param {number} deltatime the time in milliseconds since the last update
      */
-    movePlayer(deltatime){
+    playerMove(deltatime){
         let dX = this.anPhiast.deltax; // initialise local variable to avoid corrupting class member
         if (this.anPhiast.currentPower == "pot"){
             dX *= 0.98;
-            if (Math.abs(dX) >= 3.5){
+            if (Math.abs(dX) >= 4 && this.anPhiast.isGrounded){
                 this.anPhiastPot.isCharging = true;
                 this.anPhiastPot.setTint(0xff4000);
                 this.anPhiastPot.cooldown = 30;
             }
-            else {
+            else if (this.anPhiast.isGrounded) {
                 this.anPhiastPot.cooldown -= deltatime;
                 if (this.anPhiastPot.cooldown <= 0){
+                    this.anPhiastPot.cooldown = 0;
                     this.anPhiastPot.isCharging = false;
+                }
+                if (this.anPhiastPot.cooldown <= 10){
                     this.anPhiastPot.clearTint();
                 }
             }
         }
         else {
+            this.anPhiastPot.isCharging = false;
+            this.anPhiastPot.clearTint();
             dX *= 0.95; // deccelerate
         }
         if (dX >= 0.001) {
@@ -380,7 +476,6 @@ export class Start extends Phaser.Scene {
         if (this.buffer.includes("l")) {
             this.accelerateLeft(deltatime);
         }
-        // this.debugText.text = this.buffer.length; DEBUG
         if (this.anPhiast.canJump){
             if (this.buffer.includes("j")) {
                 this.jump(deltatime);
@@ -396,9 +491,6 @@ export class Start extends Phaser.Scene {
             this.handleGravity(deltatime);
         }
         
-        //move
-        this.anPhiast.y -= this.anPhiast.deltay;
-
         const boundsPlayer = {
             y:this.anPhiast.getCenter().y,
             x:this.anPhiast.x,
@@ -463,6 +555,10 @@ export class Start extends Phaser.Scene {
             const containsPhiastT = tBounds.t <= boundsPlayer.t && tBounds.b >= boundsPlayer.t;
             const containsPhiastR = tBounds.l <= boundsPlayer.r && tBounds.r >= boundsPlayer.r;
             const containsPhiastL = tBounds.l <= boundsPlayer.l && tBounds.r >= boundsPlayer.l;
+            const wouldContainPhiastB = tBounds.t <= boundsPlayer.b + this.anPhiast.deltay && tBounds.b >= boundsPlayer.b + this.anPhiast.deltay;
+            const wouldContainPhiastT = tBounds.t <= boundsPlayer.t + this.anPhiast.deltay && tBounds.b >= boundsPlayer.t + this.anPhiast.deltay;
+            const wouldContainPhiastR = tBounds.l <= boundsPlayer.r + this.anPhiast.deltax && tBounds.r >= boundsPlayer.r + this.anPhiast.deltax;
+            const wouldContainPhiastL = tBounds.l <= boundsPlayer.l + this.anPhiast.deltax && tBounds.r >= boundsPlayer.l + this.anPhiast.deltax;
             const containsMidX = (tBounds.l <= boundsPlayer.x - (boundsPlayer.w * (1 / 8)) 
                 && tBounds.r >= boundsPlayer.x - (boundsPlayer.w * (1 / 8)))
                 || (tBounds.l <= boundsPlayer.x + (boundsPlayer.w * (1 / 8)) 
@@ -481,49 +577,30 @@ export class Start extends Phaser.Scene {
                     if (this.buffer.includes("u")){
                         let message = "";
                         if (tBounds.r < 20){
-                            message = "Wow, you made that difficult jump... or you just climbed.";
+                            message = "Wow, you made that difficult jump... or you used the pot.";
                         }
                         else if (tBounds.r < 70){
                             message = "WASD or Arrow Keys to move.";
                         }
                         else if (tBounds.r < 250){
-                            message = "Space to jump, hold it down to jump higher."
+                            message = "Space to jump, hold it down to jump higher.";
                         }
                         else {
-                            message = "congrats! Did you know you can climb walls?"
+                            message = "congrats! You beat the tutorial level.";
                         }
-                        this.debugText.setVisible(true);
-                        this.debugText.text = message;
-                        this.debugText.setPadding(50,25,25,50);
-                        this.debugText.setFixedSize(1000, 100);
-                        this.debugText.setBackgroundColor("#082060a8");
-                        this.debugText.setFontSize("24px");
-                        //this.debugText.tintFill = true;
-                        this.debugText.setOrigin(0.5);
-                        this.textBoxFadeOut = 200;
+                        this.createDialogue(message);
                     }
                 }
                 return;
             }
 
-            if (containsPhiastB && (containsMidX || containsPhiastX) && this.anPhiast.deltay <= 0) {
-                if (containsMidX) {
-                    if (curY > tBounds.t){
-                        curY = tBounds.t - cPad;
-                        this.anPhiast.y = curY;
-                    }
-                }
-                if (containsPhiastX){
-                    isCollideY = true;
-                }
-                //this.debugText.text = "land";
-            }
-            else if (containsMidX && containsPhiastT && this.anPhiast.deltay >= 0) {
+            if (containsPhiastX && (wouldContainPhiastT || containsPhiastT) && this.anPhiast.deltay >= 0) {
                 isCollideUnderPlat = true;
-                curY = tBounds.b + boundsPlayer.h;
+                curY = tBounds.b + boundsPlayer.h + cPad * 5;
+                this.anPhiast.deltay = 0;
             }
-            else if (containsPhiastY && (containsPhiastR || containsPhiastL)) {
-                if (containsPhiastR && this.anPhiast.deltax >= 0) {
+            else if ((containsPhiastY && this.anPhiast.isGrounded) || (containsPhiastY && !containsPhiastB) && (containsPhiastR || containsPhiastL || wouldContainPhiastR || wouldContainPhiastL)) {
+                if ((containsPhiastR && this.anPhiast.deltax >= 0) || wouldContainPhiastR) {
                     if (!isCollideX){
                         isCollideX = true;
                     }
@@ -534,7 +611,7 @@ export class Start extends Phaser.Scene {
                         curX = tBounds.l - boundsPlayer.w/2 - cPad;
                     }
                 }
-                if (containsPhiastL && this.anPhiast.deltax <= 0) {
+                if ((containsPhiastL && this.anPhiast.deltax <= 0) || wouldContainPhiastL) {
                     if (!isCollideX){
                         isCollideX = true;
                     }
@@ -544,6 +621,18 @@ export class Start extends Phaser.Scene {
                     else if (curX < tBounds.r + boundsPlayer.w/2){
                         curX = tBounds.r + boundsPlayer.w/2 + cPad;
                     }
+                }
+                this.anPhiast.deltax = 0;
+            }
+            if (wouldContainPhiastB || (containsPhiastB && this.anPhiast.deltay <= 0) && (containsMidX || containsPhiastX) ) {
+                if (containsMidX) {
+                    if (curY > tBounds.t){
+                        curY = tBounds.t - cPad;
+                        this.anPhiast.y = curY;
+                    }
+                }
+                if (containsPhiastX){
+                    isCollideY = true;
                 }
             }
         }, this)
@@ -572,24 +661,230 @@ export class Start extends Phaser.Scene {
 
         // For some reason splitting the x and y movement gives the effect I want
         this.anPhiast.x += this.anPhiast.deltax;
+        this.anPhiast.y -= this.anPhiast.deltay;
 
-        // this.debugText.text = this.anPhiast.deltax; DEBUG
         if (this.anPhiast.y > 800) {
             this.respawnAnPhiast();
         }
 
         const containsPotIconX = this.anPhiast.getTopLeft().x < this.potIcon.x && this.anPhiast.getBottomRight().x > this.potIcon.x;
         const containsPotIconY = this.anPhiast.getTopLeft().y < this.potIcon.y && this.anPhiast.getBottomRight().y > this.potIcon.y;
+        const containsHatIconX = this.anPhiast.getTopLeft().x < this.cowboyIcon.x && this.anPhiast.getBottomRight().x > this.cowboyIcon.x;
+        const containsHatIconY = this.anPhiast.getTopLeft().y < this.cowboyIcon.y && this.anPhiast.getBottomRight().y > this.cowboyIcon.y;
         if (containsPotIconX && containsPotIconY && !this.anPhiast.collectedPowers.includes("pot")){
             this.anPhiast.collectedPowers.push("pot");
             this.anPhiast.currentPower = "pot";
             this.healthbar.setScale(10, 5);
             this.healthbar.setOrigin(0.5, 0.5);
             this.anPhiast.setVisible(false);
+            this.anPhiastCowboy.setVisible(false);
             this.anPhiastPot.setVisible(true);
+            this.setPowerupText();
+            if (this.powerupCyclingTutorial) {
+                this.powerupCyclingTutorial = false;
+                this.createDialogue("You can press Q and E to cycle between your collected powerups");
+            }
+            this.createDialogue("You got the powerup 'pot'. Gain speed to charge into enemies.", this.anPhiastPot.needsTutorial, 1000);
+        }
+        if (containsHatIconX && containsHatIconY && !this.anPhiast.collectedPowers.includes("cowboy")){
+            this.anPhiast.collectedPowers.push("cowboy");
+            this.anPhiast.currentPower = "cowboy";
+            this.healthbar.setScale(5, 5);
+            this.healthbar.setOrigin(1, 0.5);
+            this.anPhiast.setVisible(false);
+            this.anPhiastPot.setVisible(false);
+            this.anPhiastCowboy.setVisible(true);
+            this.setPowerupText();
+            if (this.powerupCyclingTutorial) {
+                this.powerupCyclingTutorial = false;
+                this.createDialogue("You can press Q and E to cycle between your collected powerups");
+            }
+            this.createDialogue("You got the powerup 'cowboy'. Press F to attack with your whip.", this.anPhiastCowboy.needsTutorial, 1000);
         }
         this.anPhiastPot.setPosition(this.anPhiast.x, this.anPhiast.y);
         this.anPhiastPot.setFlip(this.anPhiast.flipX);
+        this.anPhiastCowboy.setPosition(this.anPhiast.x, this.anPhiast.y);
+        this.anPhiastCowboy.setFlip(this.anPhiast.flipX);
+    }
+
+    playerAttack(deltatime) {
+        if (this.anPhiast.currentPower == "cowboy") {
+            if (this.buffer.includes("a") && !this.anPhiastCowboy.isAttacking) {
+                this.whip.setScale(1);
+                this.anPhiastCowboy.isAttacking = true;
+                this.anPhiastCowboy.cooldown = 60;
+                this.whip.setVisible(true);
+            }
+            if (this.anPhiastCowboy.isAttacking) {
+                const whipPos = { 
+                    x:0, 
+                    y:0 
+                };
+                const whipScale = {
+                    x:this.whip.scaleX,
+                    y:this.whip.scaleY
+                }
+                const pBounds = { 
+                    x: this.anPhiast.displayWidth,
+                    y: this.anPhiast.displayHeight
+                }
+                this.anPhiastCowboy.cooldown -= deltatime * 2;
+                if (this.anPhiastCowboy.cooldown <= 5) {
+                    whipPos.x += pBounds.x / 5;
+                    whipPos.y += pBounds.y / 2;
+                    whipScale.y *= 1.02 * deltatime;
+                }
+                else if (this.anPhiastCowboy.cooldown <= 10) {
+                    whipPos.x += pBounds.x / 2;
+                    whipPos.y += pBounds.y / 3;
+                    whipScale.x *= 0.95 * deltatime;
+                    whipScale.y *= 1.03 * deltatime;
+                }
+                else if (this.anPhiastCowboy.cooldown <= 20){
+                    whipPos.x += pBounds.x;
+                    whipPos.y += pBounds.y / 8;
+                    whipScale.x *= 0.95 * deltatime;
+                    whipScale.y *= 1.02 * deltatime;
+                }
+                else if (this.anPhiastCowboy.cooldown <= 25) {
+                    whipPos.x += pBounds.x * 1.2;
+                    whipPos.y -= pBounds.y / 8;
+                    whipScale.x *= 1.02 * deltatime;
+                    whipScale.y *= 0.97 * deltatime;
+                }
+                else if (this.anPhiastCowboy.cooldown <= 30) {
+                    whipPos.x += pBounds.x;
+                    whipPos.y -= pBounds.y / 3;  
+                    whipScale.x *= 1.12 * deltatime;
+                    whipScale.y *= 0.9 * deltatime;
+                }
+                else if (this.anPhiastCowboy.cooldown <= 40) {
+                    whipPos.x -= pBounds.x / 2;
+                    whipPos.y -= pBounds.y / 3;
+                    whipScale.y *= 1.05 * deltatime;
+                }
+                else if (this.anPhiastCowboy.cooldown <= 50) {
+                    whipPos.x -= pBounds.x;
+                    whipPos.y += pBounds.y / 6;
+                    whipScale.x *= 0.95 * deltatime;
+                    whipScale.y *= 1.05 * deltatime;
+                }
+                else {
+                    whipPos.x -= pBounds.x;
+                    whipPos.y += pBounds.y / 3;
+                    whipScale.y = 0.25;
+                    whipScale.x = 2;
+                }
+
+                if (this.anPhiastCowboy.flipX) {
+                    whipPos.x = this.anPhiastCowboy.getLeftCenter().x - whipPos.x;
+                    whipPos.y = this.anPhiastCowboy.getLeftCenter().y + whipPos.y;
+                }
+                else {
+                    whipPos.x = this.anPhiastCowboy.getRightCenter().x + whipPos.x;
+                    whipPos.y = this.anPhiastCowboy.getRightCenter().y + whipPos.y;
+                }
+                this.whip.setScale(whipScale.x, whipScale.y);
+                this.whip.setPosition(whipPos.x, whipPos.y);
+
+                const whipDims = {
+                    left: this.whip.getTopLeft().x,
+                    top: this.whip.getTopLeft().y,
+                    right: this.whip.getBottomRight().x,
+                    bottom: this.whip.getBottomRight().y
+                }
+
+                this.enemies.forEach(enemy => {
+                    const dims = {
+                        p: enemy.getCenter(),
+                        w: enemy.displayWidth / 2,
+                        h: enemy.displayHeight / 2
+                    };
+                    const whipContainsY = (whipDims.top - dims.h < dims.p.y) && (whipDims.bottom + dims.h > dims.p.y);
+                    const whipContainsX = (whipDims.left - dims.w < dims.p.x) && (whipDims.right + dims.w > dims.p.x);
+                    if (whipContainsX && whipContainsY) {
+                        enemy.takeDamage();
+                    }
+                });
+            }
+            if (this.anPhiastCowboy.cooldown <= 0){
+                this.anPhiastCowboy.isAttacking = false;
+                this.anPhiastCowboy.cooldown = 0;
+                this.whip.setVisible(false);
+            }
+        }
+    }
+    
+    /** Adds Dialogue to dialogue array 
+     * @param {String|String[]} strMess the message to display
+     * @param {Boolean} useTimer controls if the timer is used or not. Default:`true`
+     * @param {Number} timer the length of time the message will display in ms. Default:`2000`
+     * @param {(String|Number)} fSize the size of the font, can be a string with a valid CSS unit or a number. Default:`24px`
+     * @param {Number} padL textbox left padding. Default:`20`
+     * @param {Number} padT textbox top padding. Default:`8`
+     * @param {Number} padR textbox right padding. Default:`padL`
+     * @param {Number} padB textbox bottom padding. Default:`padT`
+     * @param {String} bgColor the background color of the textbox, hex code (e.g. "#fff") or css color (e.g. "black"). Default:`#082060a8`
+     */
+    createDialogue(strMess, useTimer = true, timer = 2000, fSize = "24px", padL = 20, padT = 8, padR = padL, padB = padT, bgColor = "#082060a8") {
+        if (this.dialogueText.text === strMess) return;
+        for (let i = 0; i < this.dialogueArr.length; i++) {
+            if (this.dialogueArr[i].text === strMess) {
+                return;
+            }
+        }
+        const newDialogue = {};
+        newDialogue.text = strMess;
+        newDialogue.useTime = useTimer;
+        newDialogue.time = timer;
+        newDialogue.fontSize = fSize;
+        newDialogue.padding = {
+            left:padL,
+            right:padR,
+            top:padT,
+            bottom:padB
+        }
+        newDialogue.boxColor = bgColor;
+        this.dialogueArr.push(newDialogue);
+    }
+
+    attemptNextDialogue() {
+        if (this.dialogueArr[0]){
+            this.nextDialogue();
+        }
+        else {
+            this.removeDialogueBox();
+        }
+        this.dialogueArr.splice(0,1);
+    }
+
+    removeDialogueBox() {
+        this.dialogueText.setText("");
+        this.dialogueText.setVisible(false);
+        this.pressEnterToSkip.setVisible(false);
+        this.textboxFadeoutTime = 0;
+        this.textboxFadeoutControl = true;
+    }
+
+    nextDialogue() {
+        const textboxObj = this.dialogueArr[0];
+        this.dialogueText.setVisible(true);
+        this.dialogueText.setPadding(textboxObj.padding.left,textboxObj.padding.top,textboxObj.padding.right,textboxObj.padding.bottom);
+        this.dialogueText.setFixedSize(1000, 100);
+        this.dialogueText.setWordWrapWidth(1000 - textboxObj.padding.left - textboxObj.padding.right);
+        this.dialogueText.setBackgroundColor(textboxObj.boxColor);
+        this.dialogueText.setFontSize(textboxObj.fontSize);
+        this.dialogueText.setOrigin(0.5);
+        this.dialogueText.setText(textboxObj.text);
+
+        const botRight = this.dialogueText.getBottomRight();
+        this.pressEnterToSkip.setVisible(true);
+        this.pressEnterToSkip.setOrigin(1, 1);
+        this.pressEnterToSkip.setPosition(botRight.x, botRight.y);
+        this.pressEnterToSkip.setPadding(textboxObj.padding.left,textboxObj.padding.top,textboxObj.padding.right,textboxObj.padding.bottom);
+        //strMess = that.dialogueText.advancedWordWrap(textboxObj.text, that.dialogueText.context, 1000 - textboxObj.padding.left - textboxObj.padding.right);
+        this.textboxFadeoutTime = textboxObj.time;
+        this.textboxFadeoutControl = textboxObj.useTime;
     }
 
     damagePhiast() {
@@ -656,7 +951,6 @@ export class Start extends Phaser.Scene {
                     curX = tile.getCenterX();
                     enemy.y = curY;
                     collideY = true;
-                    //this.debugText.text = "land";
                 }
                 else if (containsEnemyY && containsEnemyX && !collideY) {
                     curY = tBounds.t - cPad;
@@ -679,6 +973,7 @@ export class Start extends Phaser.Scene {
         this.anPhiast.collectedPowers.push(this.anPhiast.currentPower);
         this.anPhiast.setVisible(true);
         this.anPhiastPot.setVisible(false);
+        this.anPhiastCowboy.setVisible(false);
         this.anPhiast.isGrounded = false;
         this.anPhiast.canJump = false;
         this.anPhiast.deltax = 0;
@@ -753,32 +1048,38 @@ export class Start extends Phaser.Scene {
         else return -1; //bad arg
         if (i == -1) return 0; //not in buffer
         const debug = this.buffer.splice(i, 1);
-        //this.debugText.text = debug.toLocaleString();
     }
 
     unexpectedError() {
         this.add.text(0, 0, 'error encountered', { fontSize: '16px', fill: '#FFF' });
-        this.debugText.text = "error";
     }
 
     update() {
         const prevTime = this.curTime;
         this.curTime = Date.now();
-        const deltatime = (this.curTime - prevTime) * this.MS_TO_FPS; //should be around 1
+        const deltatimeMilliseconds = (this.curTime - prevTime);
+        const deltatime = deltatimeMilliseconds * this.MS_TO_FPS; //should be around 1
 
         this.coyoteTime -= deltatime;
-        this.textBoxFadeOut -= deltatime;
+        this.textboxFadeoutTime -= deltatimeMilliseconds;
+
         if (this.coyoteTime < 0){
             this.coyoteTime = 0;
             this.anPhiast.canJump = false;
         }
-        if (this.textBoxFadeOut < 0){
-            this.textBoxFadeOut = 0;
-            this.debugText.setVisible(false);
+        if (this.dialogueArr[0]) {
+            this.pressEnterToSkip.text = "press enter to skip";
+        }
+        else {
+            this.pressEnterToSkip.text = "press enter to close this textbox";
+        }
+        if (this.textboxFadeoutTime < 0 && (this.textboxFadeoutControl || this.dialogueArr[0])){
+            this.textboxFadeoutTime = 0;
+            this.attemptNextDialogue();
         }
 
-        this.movePlayer(deltatime);
+        this.playerMove(deltatime);
         this.moveAllEnemies();
-        //this.background.tilePositionX += 2;
+        this.playerAttack(deltatime);
     }
 }
