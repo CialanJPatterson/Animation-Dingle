@@ -1,14 +1,3 @@
-{
-    "automappingRulesFile": "",
-    "commands": [
-    ],
-    "compatibilityVersion": 1100,
-    "extensionsPath": "extensions",
-    "folders": [
-        "."
-    ],
-    "properties": [
-    ],
-    "propertyTypes": [
-    ]
-}
+version https://git-lfs.github.com/spec/v1
+oid sha256:d6085e79f3eab6fd80d5bcfd08b3f5903c34b85345d5435b5a8c67fd09a80385
+size 237
