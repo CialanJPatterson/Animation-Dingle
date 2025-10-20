@@ -1,3 +1,9 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:19d740037147a844396747d4cea0781fefa2451255dbc096471b93386cdbb53e
-size 228
+# Animation-Dingle
+
+CONTROLS
+Esc: Pause,
+[A, Left Arrow], [D, Right Arrow]: Move Left, Move Right,
+[W, Up Arrow], [S, Down Arrow]: Look Up, Look Down,
+[Q, Comma], [E, Period]: Cycle Powerups,
+[Space]: Jump,
+[F, Enter]: Use Power
