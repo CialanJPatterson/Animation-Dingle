@@ -1,4 +1,5 @@
 # Animation-Dingle
+URL:https://cialanjpatterson.github.io/Animation-Dingle/src/
 
 to install a local copy, clone this repo and then run the file "out/make/squirrel.windows/x64/animation-dingle-1.0.0 Setup.exe" 
 A shortcut will be created on your desktop.
