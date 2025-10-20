@@ -1,3 +1,4 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:fefdedcf11c11e8bb04aaafcfb739f8b198de99725ed83c27d9b2d95e91e6035
-size 234
+<?xml version="1.0" encoding="UTF-8"?>
+<tileset version="1.10" tiledversion="1.11.2" name="sandTiles" tilewidth="16" tileheight="16" tilecount="56" columns="8">
+ <image source="sandTiles.png" width="128" height="112"/>
+</tileset>

@@ -1,3 +1,225 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:30293394eebd41d2af2d404e380496a4735cefe69d4158ed6cfbdea1e1f3d35d
-size 7812
+<?xml version="1.0" encoding="UTF-8"?>
+<tileset version="1.10" tiledversion="1.11.2" name="grassTiles" tilewidth="16" tileheight="16" tilecount="42" columns="7">
+ <editorsettings>
+  <export target="grassTiles.json" format="json"/>
+ </editorsettings>
+ <image source="grassTiles.png" width="112" height="96"/>
+ <tile id="0">
+  <objectgroup draworder="index" id="2">
+   <object id="4" name="Collision" x="9.625" y="7">
+    <polygon points="-9.625,-7 -9.625,9 6.375,9 6.375,-7"/>
+   </object>
+  </objectgroup>
+ </tile>
+ <tile id="1">
+  <objectgroup draworder="index" id="2">
+   <object id="1" name="Collision" x="4.5625" y="9.3125">
+    <polygon points="-4.5625,-9.3125 -4.5625,6.6875 11.4375,6.6875 11.4375,-9.3125"/>
+   </object>
+  </objectgroup>
+ </tile>
+ <tile id="2">
+  <objectgroup draworder="index" id="2">
+   <object id="1" name="Collision" x="12" y="9.3125">
+    <polygon points="-12,-9.3125 -12,6.6875 4,6.6875 4,-9.3125"/>
+   </object>
+  </objectgroup>
+ </tile>
+ <tile id="3">
+  <objectgroup draworder="index" id="2">
+   <object id="3" name="Collision" x="15.9375" y="5.25">
+    <polygon points="0,0 -2.1875,-3.6875 -7.9375,-5.25 -15.9375,-5.25 -15.9375,10.75 -3.9375,10.75 -3.9375,6.75"/>
+   </object>
+  </objectgroup>
+ </tile>
+ <tile id="4">
+  <objectgroup draworder="index" id="2">
+   <object id="1" name="Collision" x="0" y="0">
+    <polygon points="0,5.25 2.1875,1.5625 7.9375,0 15.9375,0 15.9375,16 3.9375,16 3.9375,12"/>
+   </object>
+  </objectgroup>
+ </tile>
+ <tile id="5">
+  <objectgroup draworder="index" id="2">
+   <object id="2" name="Collision" x="2.375" y="3.0625">
+    <polygon points="-2.375,-3.0625 9.625,-3.0625 9.625,12.9375 -2.375,12.9375"/>
+   </object>
+  </objectgroup>
+ </tile>
+ <tile id="6">
+  <objectgroup draworder="index" id="2">
+   <object id="4" name="Collision" x="1.27599" y="1.04348">
+    <polygon points="-1.27599,-1.04348 10.724,-1.04348 8.50662,14.9565 -1.27599,14.9565"/>
+   </object>
+  </objectgroup>
+ </tile>
+ <tile id="7">
+  <objectgroup draworder="index" id="2">
+   <object id="1" name="Collision" x="5.09091" y="10.3636">
+    <polygon points="-1.09091,-10.3636 10.9091,-10.3636 10.9091,5.63636 -1.09091,5.63636"/>
+   </object>
+  </objectgroup>
+ </tile>
+ <tile id="8">
+  <objectgroup draworder="index" id="2">
+   <object id="1" name="Collision" x="16.448" y="8.875">
+    <polygon points="-0.44802,-8.875 -12.448,-8.875 -10.2306,7.12498 -0.44802,7.12498"/>
+   </object>
+  </objectgroup>
+ </tile>
+ <tile id="14">
+  <objectgroup draworder="index" id="2">
+   <object id="1" name="Collision" x="8.9375" y="6.44385">
+    <polygon points="-0.9375,-2.36692 7.0625,-1.4751 7.0625,-6.44385 -4.9375,-6.44385"/>
+   </object>
+  </objectgroup>
+ </tile>
+ <tile id="15">
+  <objectgroup draworder="index" id="2">
+   <object id="1" name="Collision" x="9.26087" y="5.42038">
+    <polygon points="-9.26087,-0.433631 6.73913,-0.433631 6.73913,-5.42038 -9.26087,-5.42038"/>
+   </object>
+  </objectgroup>
+ </tile>
+ <tile id="16">
+  <objectgroup draworder="index" id="2">
+   <object id="1" name="Collision" x="7.28125" y="6.3125">
+    <polygon points="0.71875,-2.23557 -7.28125,-1.34375 -7.28125,-6.3125 4.71875,-6.3125"/>
+   </object>
+  </objectgroup>
+ </tile>
+ <tile id="17">
+  <objectgroup draworder="index" id="2">
+   <object id="1" name="Collision" x="8.27273" y="4.63636">
+    <polygon points="-8.27273,-4.63636 -8.27273,11.3636 7.72727,11.3636 7.72727,-4.63636"/>
+   </object>
+  </objectgroup>
+ </tile>
+ <tile id="18">
+  <objectgroup draworder="index" id="2">
+   <object id="1" name="Collision" x="0" y="0" width="15" height="16"/>
+  </objectgroup>
+ </tile>
+ <tile id="19">
+  <objectgroup draworder="index" id="2">
+   <object id="1" name="Collision" x="2" y="6.63636">
+    <polygon points="-2,-6.63636 -2,9.36364 14,9.36364 14,-6.63636"/>
+   </object>
+  </objectgroup>
+ </tile>
+ <tile id="20">
+  <objectgroup draworder="index" id="2">
+   <object id="2" name="Collision" x="8" y="11.913">
+    <polygon points="-3.125,0.0557065 -6.46875,-2.94429 -8,-7.91304 -6.46875,-10.6005 -4,-11.913 4.21875,-11.913 6.40625,-10.7255 8,-7.91304 6.4375,-2.91304 3.09375,0.0557065"/>
+   </object>
+  </objectgroup>
+ </tile>
+ <tile id="21">
+  <objectgroup draworder="index" id="2">
+   <object id="1" name="Collision" x="1" y="0" width="15" height="16"/>
+  </objectgroup>
+ </tile>
+ <tile id="24">
+  <objectgroup draworder="index" id="2">
+   <object id="1" name="Collision" x="1" y="0" width="15" height="16"/>
+  </objectgroup>
+ </tile>
+ <tile id="25">
+  <objectgroup draworder="index" id="2">
+   <object id="1" name="Collision" x="0" y="0" width="15" height="16"/>
+  </objectgroup>
+ </tile>
+ <tile id="26">
+  <objectgroup draworder="index" id="2">
+   <object id="1" name="Collision" x="1" y="0" width="15" height="16"/>
+  </objectgroup>
+ </tile>
+ <tile id="27">
+  <objectgroup draworder="index" id="2">
+   <object id="1" name="Collision" x="6.75" y="13.125">
+    <polygon points="-6.75,-13.125 -6.75,2.875 9.25,2.875 9.25,-13.125"/>
+   </object>
+  </objectgroup>
+ </tile>
+ <tile id="28">
+  <objectgroup draworder="index" id="2">
+   <object id="1" name="Collision" x="0" y="0" width="15" height="16"/>
+  </objectgroup>
+ </tile>
+ <tile id="29">
+  <objectgroup draworder="index" id="2">
+   <object id="1" name="Collision" x="0.875" y="3.375">
+    <polygon points="-0.875,-3.375 -0.875,12.625 15.125,12.625 15.125,-3.375"/>
+   </object>
+  </objectgroup>
+ </tile>
+ <tile id="30">
+  <objectgroup draworder="index" id="2">
+   <object id="1" name="Collision" x="0" y="0" width="15" height="16"/>
+  </objectgroup>
+ </tile>
+ <tile id="31">
+  <objectgroup draworder="index" id="2">
+   <object id="1" name="Collision" x="1.72727" y="5.45455">
+    <polygon points="-1.72727,-5.45455 -1.72727,10.5455 14.2727,10.5455 14.2727,-5.45455"/>
+   </object>
+  </objectgroup>
+ </tile>
+ <tile id="32">
+  <objectgroup draworder="index" id="2">
+   <object id="1" name="Collision" x="1.5" y="3.625">
+    <polygon points="-1.5,-3.625 -1.5,12.375 14.5,12.375 14.5,-3.625"/>
+   </object>
+  </objectgroup>
+ </tile>
+ <tile id="33">
+  <objectgroup draworder="index" id="2">
+   <object id="1" name="Collision" x="1.25" y="1.5">
+    <polygon points="-1.25,-1.5 -1.25,14.5 14.75,14.5 14.75,-1.5"/>
+   </object>
+  </objectgroup>
+ </tile>
+ <tile id="34">
+  <objectgroup draworder="index" id="2">
+   <object id="1" name="Collision" x="0" y="0" width="15" height="16"/>
+  </objectgroup>
+ </tile>
+ <tile id="35">
+  <objectgroup draworder="index" id="2">
+   <object id="1" name="Collision" x="-4.125" y="9.875">
+    <polygon points="4.125,-9.875 4.125,6.125 20.125,6.125 20.125,-9.875"/>
+   </object>
+  </objectgroup>
+ </tile>
+ <tile id="36">
+  <objectgroup draworder="index" id="2">
+   <object id="1" name="Collision" x="1" y="0" width="15" height="16"/>
+  </objectgroup>
+ </tile>
+ <tile id="37">
+  <objectgroup draworder="index" id="2">
+   <object id="1" name="Collision" x="-5.875" y="7.875">
+    <polygon points="5.875,-7.875 5.875,8.125 21.875,8.125 21.875,-7.875"/>
+   </object>
+  </objectgroup>
+ </tile>
+ <tile id="38">
+  <objectgroup draworder="index" id="2">
+   <object id="1" name="Collision" x="0" y="0" width="15" height="16"/>
+  </objectgroup>
+ </tile>
+ <tile id="39">
+  <objectgroup draworder="index" id="2">
+   <object id="1" name="Collision" x="2.875" y="1.5">
+    <polygon points="-2.875,-1.5 -2.875,14.5 13.125,14.5 13.125,-1.5"/>
+   </object>
+  </objectgroup>
+ </tile>
+ <tile id="40">
+  <objectgroup draworder="index" id="2">
+   <object id="1" name="Collision" x="7.5" y="10.625">
+    <polygon points="-7.5,-10.625 -7.5,5.375 8.5,5.375 8.5,-10.625"/>
+   </object>
+  </objectgroup>
+ </tile>
+</tileset>

@@ -1,3 +1,41 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:d56c606d7a6aaa7dc36249579f8b78be4fc5dbf2db228a22723a74ab5046709a
-size 771
+import { Start } from './scenes/Start.js';
+import { Pause } from './scenes/Pause.js';
+
+const config = {
+    type: Phaser.AUTO,
+    title: 'Overlord Rising',
+    description: '',
+    parent: 'game-container',
+    width: 1280,
+    height: 720,
+    backgroundColor: '#000000',
+    pixelArt: true,
+    physics: {
+        default: 'matter',
+        matter: {
+        x: 0,
+        y: 0,
+        gravity: {
+        x: 0,
+        y: 2
+        },
+        checkCollision: {
+        up: true,
+        down: true,
+        left: true,
+        right: true
+        },
+        customUpdate: true
+        }
+    },
+    scene: [
+        Start,
+        Pause
+    ],
+    scale: {
+        mode: Phaser.Scale.FIT,
+        autoCenter: Phaser.Scale.CENTER_BOTH
+    },
+}
+
+new Phaser.Game(config);
